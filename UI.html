@@ -1,0 +1,2572 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ContaBase — Dashboard</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        font-family: "DM Sans", system-ui, sans-serif;
+        background: #f5f4f0;
+        color: #1a1a18;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      .mono {
+        font-family: "DM Mono", monospace;
+      }
+
+      .scrollbar-thin::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+
+      .scrollbar-thin::-webkit-scrollbar-thumb {
+        background: #d4d1ca;
+        border-radius: 999px;
+      }
+
+      .scrollbar-thin::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      /* Ajustes adicionales para el layout */
+      .nav-item {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-radius: 0.75rem;
+        padding: 0.7rem 0.8rem;
+        font-size: 13.5px;
+        font-weight: 500;
+        color: #57534e;
+        text-align: left;
+        transition:
+          background 0.15s ease,
+          color 0.15s ease;
+      }
+
+      .nav-item:hover {
+        background: #f5f5f4;
+        color: #1c1917;
+      }
+
+      .nav-item.active {
+        background: #fef3c7;
+        color: #7c4f1a;
+      }
+
+      .nav-ico {
+        width: 1rem;
+        height: 1rem;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .nav-ico svg {
+        width: 1rem;
+        height: 1rem;
+        opacity: 0.75;
+      }
+
+      .nav-item.active .nav-ico svg {
+        opacity: 1;
+      }
+
+      .nav-txt {
+        min-width: 0;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .nav-badge {
+        flex: 0 0 auto;
+        border-radius: 9999px;
+        padding: 0.15rem 0.5rem;
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1;
+      }
+
+      .dd-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: calc(100% + 6px);
+        min-width: 180px;
+        z-index: 50;
+        overflow: hidden;
+        border: 1px solid #e7e5e4;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .dd-menu.open {
+        display: block;
+      }
+
+      .dd-item {
+        width: 100%;
+        text-align: left;
+        padding: 8px 12px;
+        font-size: 13px;
+        color: #57534e;
+        background: #fff;
+      }
+
+      .dd-item:hover {
+        background: #f5f5f4;
+        color: #1c1917;
+      }
+
+      .dd-item.danger:hover {
+        background: #fef2f2;
+        color: #dc2626;
+      }
+
+      .tab {
+        padding: 0.75rem 1rem;
+        font-size: 13.5px;
+        font-weight: 500;
+        color: #78716c;
+        border-bottom: 2px solid transparent;
+        white-space: nowrap;
+      }
+
+      .tab.on {
+        color: #1c1917;
+        border-bottom-color: #cc8b3c;
+      }
+
+      .tab-pane {
+        display: block;
+      }
+
+      .tab-pane.hidden {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body class="h-dvh overflow-hidden">
+    <div class="flex h-dvh overflow-hidden">
+      <!-- Sidebar backdrop móvil -->
+      <div
+        id="sidebarBackdrop"
+        class="fixed inset-0 z-30 hidden bg-black/40 backdrop-blur-[2px] lg:hidden"
+        onclick="toggleSidebar(false)"
+      ></div>
+
+      <!-- SIDEBAR -->
+      <aside
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-40 flex w-[84vw] max-w-[290px] -translate-x-full flex-col border-r border-stone-200 bg-white transition-transform duration-200 lg:sticky lg:top-0 lg:h-dvh lg:w-[240px] lg:translate-x-0"
+      >
+        <!-- Brand -->
+        <div
+          class="flex items-center gap-3 border-b border-stone-200 px-4 py-4"
+        >
+          <div
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#cc8b3c]"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#fff"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            >
+              <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+              <path d="M8 21h8M12 17v4"></path>
+            </svg>
+          </div>
+
+          <div class="min-w-0">
+            <p
+              class="truncate text-[15px] font-bold tracking-tight text-stone-900"
+            >
+              ContaBase
+            </p>
+            <p class="truncate text-[11.5px] text-stone-400">
+              Dashboard contable
+            </p>
+          </div>
+
+          <span
+            class="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
+            >v1</span
+          >
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin">
+          <div
+            class="mb-2 px-3 text-[10.5px] font-semibold uppercase tracking-[.08em] text-stone-400"
+          >
+            Principal
+          </div>
+
+          <button
+            class="nav-item active"
+            onclick="showSection(this, 'sec-dashboard')"
+          >
+            <span class="nav-ico">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect
+                  x="3"
+                  y="3"
+                  width="7"
+                  height="7"
+                  rx="1"
+                  stroke-width="2"
+                ></rect>
+                <rect
+                  x="14"
+                  y="3"
+                  width="7"
+                  height="7"
+                  rx="1"
+                  stroke-width="2"
+                ></rect>
+                <rect
+                  x="3"
+                  y="14"
+                  width="7"
+                  height="7"
+                  rx="1"
+                  stroke-width="2"
+                ></rect>
+                <rect
+                  x="14"
+                  y="14"
+                  width="7"
+                  height="7"
+                  rx="1"
+                  stroke-width="2"
+                ></rect>
+              </svg>
+            </span>
+            <span class="nav-txt">Dashboard</span>
+          </button>
+
+          <button class="nav-item" onclick="showSection(this, 'sec-tabla')">
+            <span class="nav-ico">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+            </span>
+            <span class="nav-txt">Libro Diario</span>
+            <span class="nav-badge bg-red-100 text-red-700">3</span>
+          </button>
+
+          <button class="nav-item" onclick="showSection(this, 'sec-form')">
+            <span class="nav-ico">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M12 4v16m8-8H4"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+            </span>
+            <span class="nav-txt">Nuevo Asiento</span>
+          </button>
+
+          <button class="nav-item" onclick="showSection(this, 'sec-reportes')">
+            <span class="nav-ico">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+            </span>
+            <span class="nav-txt">Reportes</span>
+          </button>
+
+          <div
+            class="my-4 px-3 text-[10.5px] font-semibold uppercase tracking-[.08em] text-stone-400"
+          >
+            Tesorería
+          </div>
+
+          <button class="nav-item" onclick="showSection(this, 'sec-bancos')">
+            <span class="nav-ico">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect
+                  x="2"
+                  y="7"
+                  width="20"
+                  height="14"
+                  rx="2"
+                  stroke-width="2"
+                ></rect>
+                <path
+                  d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"
+                  stroke-width="2"
+                ></path>
+              </svg>
+            </span>
+            <span class="nav-txt">Bancos</span>
+          </button>
+
+          <div
+            class="my-4 px-3 text-[10.5px] font-semibold uppercase tracking-[.08em] text-stone-400"
+          >
+            Librería UI
+          </div>
+
+          <button class="nav-item" onclick="showSection(this, 'sec-ui')">
+            <span class="nav-ico">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect
+                  x="3"
+                  y="3"
+                  width="18"
+                  height="18"
+                  rx="2"
+                  stroke-width="2"
+                ></rect>
+                <path
+                  d="M9 9h6M9 12h6M9 15h4"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+            </span>
+            <span class="nav-txt">Componentes UI</span>
+          </button>
+
+          <div
+            class="my-4 px-3 text-[10.5px] font-semibold uppercase tracking-[.08em] text-stone-400"
+          >
+            Admin
+          </div>
+
+          <button class="nav-item">
+            <span class="nav-ico">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"
+                  stroke-width="2"
+                ></path>
+                <circle cx="9" cy="7" r="4" stroke-width="2"></circle>
+                <path
+                  d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+            </span>
+            <span class="nav-txt">Terceros</span>
+          </button>
+
+          <button class="nav-item">
+            <span class="nav-ico">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  stroke-width="2"
+                ></path>
+                <circle cx="12" cy="12" r="3" stroke-width="2"></circle>
+              </svg>
+            </span>
+            <span class="nav-txt">Configuración</span>
+          </button>
+        </nav>
+
+        <!-- Footer usuario -->
+        <div class="border-t border-stone-200 p-3">
+          <div class="flex items-center gap-3 rounded-xl bg-stone-50 px-3 py-3">
+            <div
+              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#cc8b3c] text-[11px] font-bold text-white"
+            >
+              JD
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-[13px] font-medium text-stone-900">
+                Juan Díaz
+              </p>
+              <p class="truncate text-[11.5px] text-stone-400">
+                Contador · Admin
+              </p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- CONTENEDOR PRINCIPAL (header + contenido) -->
+      <div class="flex flex-1 flex-col min-w-0">
+        <!-- TOPBAR -->
+        <header
+          class="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-stone-200 bg-white px-3 sm:px-4"
+        >
+          <button
+            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-600 lg:hidden"
+            onclick="toggleSidebar()"
+          >
+            <svg
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M4 6h16M4 12h16M4 18h16"
+                stroke-width="2"
+                stroke-linecap="round"
+              ></path>
+            </svg>
+          </button>
+
+          <div class="min-w-0">
+            <p
+              id="tb-title"
+              class="truncate text-[14px] font-semibold text-stone-900"
+            >
+              Dashboard
+            </p>
+            <p class="hidden text-[11.5px] text-stone-400 sm:block">
+              Panel principal
+            </p>
+          </div>
+
+          <div class="ml-auto flex items-center gap-2">
+            <span
+              class="hidden rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-medium text-green-700 sm:inline-flex"
+              >● Sistema activo</span
+            >
+
+            <button
+              class="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-stone-600 hover:bg-stone-100"
+            >
+              <svg
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                ></path>
+              </svg>
+              <span
+                class="absolute right-[6px] top-[6px] h-1.5 w-1.5 rounded-full bg-red-500 ring-2 ring-white"
+              ></span>
+            </button>
+
+            <div class="relative">
+              <button
+                class="flex items-center gap-1 rounded-lg px-2 py-1 text-stone-600 hover:bg-stone-100"
+                onclick="toggleDD('dd-user')"
+              >
+                <div
+                  class="flex h-8 w-8 items-center justify-center rounded-full bg-[#cc8b3c] text-[10px] font-bold text-white"
+                >
+                  JD
+                </div>
+                <svg
+                  width="12"
+                  height="12"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M6 9l6 6 6-6"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  ></path>
+                </svg>
+              </button>
+
+              <div id="dd-user" class="dd-menu">
+                <button class="dd-item">Mi perfil</button>
+                <button class="dd-item">Ajustes de cuenta</button>
+                <div class="my-1 h-px bg-stone-200"></div>
+                <button class="dd-item danger">Cerrar sesión</button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- CONTENIDO PRINCIPAL CON SCROLL -->
+        <main
+          id="main-scroll"
+          class="flex-1 overflow-y-auto scrollbar-thin px-3 py-4 sm:px-4 sm:py-5 lg:px-6"
+        >
+          <!-- DASHBOARD -->
+          <section id="sec-dashboard" class="space-y-4">
+            <div
+              class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+            >
+              <strong>3 retenciones</strong> vencen el 20 de abril. Realice el
+              pago antes de la fecha límite para evitar sanciones.
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div class="rounded-xl border border-stone-200 bg-white p-4">
+                <p class="text-[12px] text-stone-400">Ingresos del mes</p>
+                <p class="mono mt-1 text-[22px] font-medium text-green-700">
+                  $48,320.00
+                </p>
+                <div
+                  class="mt-2 flex items-center gap-2 text-[11.5px] text-stone-400"
+                >
+                  <span
+                    class="rounded-full bg-green-100 px-2 py-0.5 text-green-700"
+                    >↑ 12.4%</span
+                  >
+                  <span>vs mes ant.</span>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-stone-200 bg-white p-4">
+                <p class="text-[12px] text-stone-400">Egresos del mes</p>
+                <p class="mono mt-1 text-[22px] font-medium text-red-700">
+                  $31,750.00
+                </p>
+                <div
+                  class="mt-2 flex items-center gap-2 text-[11.5px] text-stone-400"
+                >
+                  <span class="rounded-full bg-red-100 px-2 py-0.5 text-red-700"
+                    >↑ 3.1%</span
+                  >
+                  <span>vs mes ant.</span>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-stone-200 bg-white p-4">
+                <p class="text-[12px] text-stone-400">Utilidad neta</p>
+                <p class="mono mt-1 text-[22px] font-medium text-blue-700">
+                  $16,570.00
+                </p>
+                <div
+                  class="mt-2 flex items-center gap-2 text-[11.5px] text-stone-400"
+                >
+                  <span
+                    class="rounded-full bg-blue-100 px-2 py-0.5 text-blue-700"
+                    >Margen 34%</span
+                  >
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-stone-200 bg-white p-4">
+                <p class="text-[12px] text-stone-400">Por cobrar</p>
+                <p class="mono mt-1 text-[22px] font-medium text-amber-700">
+                  $9,100.00
+                </p>
+                <div
+                  class="mt-2 flex items-center gap-2 text-[11.5px] text-stone-400"
+                >
+                  <span
+                    class="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700"
+                    >7 facturas</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_268px]">
+              <div
+                class="overflow-hidden rounded-xl border border-stone-200 bg-white"
+              >
+                <div
+                  class="flex items-center justify-between border-b border-stone-200 px-4 py-3"
+                >
+                  <div>
+                    <p class="text-[13.5px] font-semibold text-stone-900">
+                      Últimos asientos
+                    </p>
+                    <p class="text-[11.5px] text-stone-400">
+                      Libro diario — Abril 2025
+                    </p>
+                  </div>
+                  <button
+                    class="text-[12.5px] font-medium text-[#7c4f1a] hover:underline"
+                    onclick="showSectionById('sec-tabla')"
+                  >
+                    Ver todos →
+                  </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                  <table
+                    class="min-w-[760px] w-full border-collapse text-[13.5px]"
+                  >
+                    <thead
+                      class="bg-stone-50 text-[11.5px] uppercase tracking-[.05em] text-stone-400"
+                    >
+                      <tr>
+                        <th class="px-3 py-2 text-left font-semibold">Fecha</th>
+                        <th class="px-3 py-2 text-left font-semibold">Cta.</th>
+                        <th class="px-3 py-2 text-left font-semibold">
+                          Descripción
+                        </th>
+                        <th class="px-3 py-2 text-right font-semibold">
+                          Débito
+                        </th>
+                        <th class="px-3 py-2 text-right font-semibold">
+                          Crédito
+                        </th>
+                        <th class="px-3 py-2 text-left font-semibold">
+                          Estado
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-stone-200">
+                      <tr class="hover:bg-stone-50">
+                        <td class="mono px-3 py-2 text-[12px] text-stone-400">
+                          01/04
+                        </td>
+                        <td class="mono px-3 py-2 font-medium">1105</td>
+                        <td class="px-3 py-2">Apertura caja general</td>
+                        <td class="mono px-3 py-2 text-right">10,000.00</td>
+                        <td class="mono px-3 py-2 text-right text-stone-400">
+                          —
+                        </td>
+                        <td class="px-3 py-2">
+                          <span
+                            class="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700"
+                            >Aprobado</span
+                          >
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-stone-50">
+                        <td class="mono px-3 py-2 text-[12px] text-stone-400">
+                          05/04
+                        </td>
+                        <td class="mono px-3 py-2 font-medium">5210</td>
+                        <td class="px-3 py-2">Arriendo oficina</td>
+                        <td class="mono px-3 py-2 text-right">1,800.00</td>
+                        <td class="mono px-3 py-2 text-right text-stone-400">
+                          —
+                        </td>
+                        <td class="px-3 py-2">
+                          <span
+                            class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700"
+                            >Pendiente</span
+                          >
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-stone-50">
+                        <td class="mono px-3 py-2 text-[12px] text-stone-400">
+                          12/04
+                        </td>
+                        <td class="mono px-3 py-2 font-medium">1305</td>
+                        <td class="px-3 py-2">C×C cliente XYZ Ltda.</td>
+                        <td class="mono px-3 py-2 text-right">5,400.00</td>
+                        <td class="mono px-3 py-2 text-right text-stone-400">
+                          —
+                        </td>
+                        <td class="px-3 py-2">
+                          <span
+                            class="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700"
+                            >Revisión</span
+                          >
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-stone-50">
+                        <td class="mono px-3 py-2 text-[12px] text-stone-400">
+                          20/04
+                        </td>
+                        <td class="mono px-3 py-2 font-medium">2365</td>
+                        <td class="px-3 py-2">Retención fuente por pagar</td>
+                        <td class="mono px-3 py-2 text-right text-stone-400">
+                          —
+                        </td>
+                        <td class="mono px-3 py-2 text-right">162.00</td>
+                        <td class="px-3 py-2">
+                          <span
+                            class="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-700"
+                            >Vencido</span
+                          >
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-stone-200 bg-white p-4">
+                <p class="mb-4 text-[13.5px] font-semibold text-stone-900">
+                  Actividad reciente
+                </p>
+                <div class="space-y-4">
+                  <div class="flex gap-3">
+                    <span class="mt-1 h-2 w-2 rounded-full bg-green-600"></span>
+                    <div>
+                      <p class="text-[13px] font-medium">AS-0141 aprobado</p>
+                      <p class="text-[11.5px] text-stone-400">
+                        Ana Gómez · 10 min
+                      </p>
+                    </div>
+                  </div>
+                  <div class="flex gap-3">
+                    <span class="mt-1 h-2 w-2 rounded-full bg-amber-500"></span>
+                    <div>
+                      <p class="text-[13px] font-medium">FAC-0124 modificada</p>
+                      <p class="text-[11.5px] text-stone-400">Juan Díaz · 1h</p>
+                    </div>
+                  </div>
+                  <div class="flex gap-3">
+                    <span class="mt-1 h-2 w-2 rounded-full bg-blue-600"></span>
+                    <div>
+                      <p class="text-[13px] font-medium">Tercero XYZ creado</p>
+                      <p class="text-[11.5px] text-stone-400">Juan Díaz · 3h</p>
+                    </div>
+                  </div>
+                  <div class="flex gap-3">
+                    <span class="mt-1 h-2 w-2 rounded-full bg-red-600"></span>
+                    <div>
+                      <p class="text-[13px] font-medium">AS-0138 anulado</p>
+                      <p class="text-[11.5px] text-stone-400">
+                        Ana Gómez · ayer
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+              <div class="rounded-xl border border-stone-200 bg-white p-4">
+                <p class="mb-4 text-[13.5px] font-semibold text-stone-900">
+                  Indicadores clave · Abril 2025
+                </p>
+                <div class="space-y-4">
+                  <div>
+                    <div class="mb-1.5 flex justify-between text-[13px]">
+                      <span class="text-stone-600">Liquidez corriente</span
+                      ><span class="mono font-medium">1.87×</span>
+                    </div>
+                    <div
+                      class="h-1.5 overflow-hidden rounded-full bg-stone-200"
+                    >
+                      <div
+                        class="h-full w-[70%] rounded-full bg-green-600"
+                      ></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="mb-1.5 flex justify-between text-[13px]">
+                      <span class="text-stone-600">Endeudamiento</span
+                      ><span class="mono font-medium">34.2%</span>
+                    </div>
+                    <div
+                      class="h-1.5 overflow-hidden rounded-full bg-stone-200"
+                    >
+                      <div
+                        class="h-full w-[34%] rounded-full bg-amber-500"
+                      ></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="mb-1.5 flex justify-between text-[13px]">
+                      <span class="text-stone-600">Margen EBITDA</span
+                      ><span class="mono font-medium">28.5%</span>
+                    </div>
+                    <div
+                      class="h-1.5 overflow-hidden rounded-full bg-stone-200"
+                    >
+                      <div
+                        class="h-full w-[28%] rounded-full bg-blue-600"
+                      ></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="mb-1.5 flex justify-between text-[13px]">
+                      <span class="text-stone-600">Rotación C×C</span
+                      ><span class="mono font-medium">18.3 días</span>
+                    </div>
+                    <div
+                      class="h-1.5 overflow-hidden rounded-full bg-stone-200"
+                    >
+                      <div
+                        class="h-full w-[55%] rounded-full bg-[#cc8b3c]"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-stone-200 bg-white p-4">
+                <p class="mb-4 text-[13.5px] font-semibold text-stone-900">
+                  Recordatorios
+                </p>
+                <div class="space-y-2">
+                  <div
+                    class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-[13px] text-amber-900"
+                  >
+                    📌 <strong>IVA bimestral:</strong> Presentar antes del 12 de
+                    mayo. Período feb–abr 2025.
+                  </div>
+                  <div
+                    class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-3 text-[13px] text-blue-900"
+                  >
+                    ℹ️ <strong>Cierre Q1:</strong> El período cierra el 30 de
+                    abril. Verifique todos los estados.
+                  </div>
+                  <div
+                    class="rounded-lg border border-red-200 bg-red-50 px-3 py-3 text-[13px] text-red-900"
+                  >
+                    ⚠️ <strong>Auditoría activa:</strong> No modifique asientos
+                    de marzo sin autorización del revisor.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- LIBRO DIARIO -->
+          <section id="sec-tabla" class="hidden space-y-4">
+            <div class="border-b border-stone-200 pb-3">
+              <p
+                class="text-[11.5px] font-semibold uppercase tracking-[.07em] text-stone-400"
+              >
+                Libro Diario · Abril 2025
+              </p>
+            </div>
+
+            <div
+              class="overflow-hidden rounded-xl border border-stone-200 bg-white"
+            >
+              <div
+                class="flex flex-col gap-3 border-b border-stone-200 p-4 lg:flex-row lg:items-center lg:justify-between"
+              >
+                <div>
+                  <p class="text-[13.5px] font-semibold text-stone-900">
+                    Asientos Contables
+                  </p>
+                  <p class="text-[11.5px] text-stone-400">
+                    142 registros · Período 04/2025
+                  </p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <div class="relative">
+                    <button
+                      class="inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] font-medium text-stone-700"
+                      onclick="toggleDD('dd-exp-t')"
+                    >
+                      ↓ Exportar ▾
+                    </button>
+                    <div id="dd-exp-t" class="dd-menu">
+                      <button class="dd-item">PDF</button>
+                      <button class="dd-item">Excel (.xlsx)</button>
+                      <button class="dd-item">CSV</button>
+                      <button class="dd-item">XML DIAN</button>
+                    </div>
+                  </div>
+                  <button
+                    class="inline-flex items-center gap-2 rounded-lg bg-[#cc8b3c] px-3 py-2 text-[13px] font-medium text-white hover:bg-[#b87830]"
+                    onclick="openModal('modal-asiento')"
+                  >
+                    + Nuevo asiento
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap gap-2 border-b border-stone-200 p-4">
+                <div class="relative w-full sm:w-auto">
+                  <svg
+                    class="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-stone-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle cx="11" cy="11" r="8" stroke-width="2"></circle>
+                    <path
+                      d="m21 21-4.35-4.35"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    ></path>
+                  </svg>
+                  <input
+                    class="w-full rounded-lg border border-stone-200 bg-white py-2 pl-8 pr-3 text-[13px] outline-none focus:border-[#cc8b3c] sm:w-48"
+                    type="text"
+                    placeholder="Buscar…"
+                  />
+                </div>
+
+                <select
+                  class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-[#cc8b3c] sm:w-40"
+                >
+                  <option>Todas las cuentas</option>
+                  <option>1xxx — Activos</option>
+                  <option>2xxx — Pasivos</option>
+                  <option>3xxx — Patrimonio</option>
+                  <option>4xxx — Ingresos</option>
+                  <option>5xxx — Gastos</option>
+                </select>
+
+                <input
+                  class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c] sm:w-36"
+                  type="date"
+                  value="2025-04-01"
+                />
+                <input
+                  class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c] sm:w-36"
+                  type="date"
+                  value="2025-04-30"
+                />
+
+                <select
+                  class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-[#cc8b3c] sm:w-36"
+                >
+                  <option>Todos los estados</option>
+                  <option>Aprobado</option>
+                  <option>Pendiente</option>
+                  <option>Revisión</option>
+                  <option>Vencido</option>
+                </select>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table
+                  class="min-w-[920px] w-full border-collapse text-[13.5px]"
+                >
+                  <thead
+                    class="bg-stone-50 text-[11.5px] uppercase tracking-[.05em] text-stone-400"
+                  >
+                    <tr>
+                      <th class="w-8 px-3 py-2 text-left font-semibold">
+                        <input type="checkbox" class="accent-[#cc8b3c]" />
+                      </th>
+                      <th class="px-3 py-2 text-left font-semibold">Fecha</th>
+                      <th class="px-3 py-2 text-left font-semibold">Cta.</th>
+                      <th class="px-3 py-2 text-left font-semibold">
+                        Descripción
+                      </th>
+                      <th class="px-3 py-2 text-left font-semibold">
+                        Referencia
+                      </th>
+                      <th class="px-3 py-2 text-right font-semibold">Débito</th>
+                      <th class="px-3 py-2 text-right font-semibold">
+                        Crédito
+                      </th>
+                      <th class="px-3 py-2 text-left font-semibold">Estado</th>
+                      <th class="px-3 py-2 text-left font-semibold">Acc.</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-stone-200">
+                    <tr class="hover:bg-stone-50">
+                      <td class="px-3 py-2">
+                        <input type="checkbox" class="accent-[#cc8b3c]" />
+                      </td>
+                      <td class="px-3 py-2 mono text-[12px] text-stone-400">
+                        01/04/25
+                      </td>
+                      <td class="px-3 py-2 mono font-medium">1105</td>
+                      <td class="px-3 py-2">Caja general — apertura</td>
+                      <td class="px-3 py-2 mono text-[11.5px] text-stone-400">
+                        REF-2025-001
+                      </td>
+                      <td class="px-3 py-2 text-right mono">10,000.00</td>
+                      <td class="px-3 py-2 text-right mono text-stone-400">
+                        —
+                      </td>
+                      <td class="px-3 py-2">
+                        <span
+                          class="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700"
+                          >Aprobado</span
+                        >
+                      </td>
+                      <td class="px-3 py-2">
+                        <div class="flex gap-2">
+                          <button
+                            class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200"
+                          >
+                            ✎
+                          </button>
+                          <button
+                            class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200"
+                          >
+                            ⋮
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <tr class="hover:bg-stone-50">
+                      <td class="px-3 py-2">
+                        <input type="checkbox" class="accent-[#cc8b3c]" />
+                      </td>
+                      <td class="px-3 py-2 mono text-[12px] text-stone-400">
+                        01/04/25
+                      </td>
+                      <td class="px-3 py-2 mono font-medium">3105</td>
+                      <td class="px-3 py-2">Capital inicial — socio A</td>
+                      <td class="px-3 py-2 mono text-[11.5px] text-stone-400">
+                        REF-2025-001
+                      </td>
+                      <td class="px-3 py-2 text-right mono text-stone-400">
+                        —
+                      </td>
+                      <td class="px-3 py-2 text-right mono">10,000.00</td>
+                      <td class="px-3 py-2">
+                        <span
+                          class="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700"
+                          >Aprobado</span
+                        >
+                      </td>
+                      <td class="px-3 py-2">
+                        <div class="flex gap-2">
+                          <button
+                            class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200"
+                          >
+                            ✎</button
+                          ><button
+                            class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200"
+                          >
+                            ⋮
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <tr class="hover:bg-stone-50">
+                      <td class="px-3 py-2">
+                        <input type="checkbox" class="accent-[#cc8b3c]" />
+                      </td>
+                      <td class="px-3 py-2 mono text-[12px] text-stone-400">
+                        05/04/25
+                      </td>
+                      <td class="px-3 py-2 mono font-medium">5210</td>
+                      <td class="px-3 py-2">Gastos admin — arriendo oficina</td>
+                      <td class="px-3 py-2 mono text-[11.5px] text-stone-400">
+                        FAC-0123
+                      </td>
+                      <td class="px-3 py-2 text-right mono">1,800.00</td>
+                      <td class="px-3 py-2 text-right mono text-stone-400">
+                        —
+                      </td>
+                      <td class="px-3 py-2">
+                        <span
+                          class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700"
+                          >Pendiente</span
+                        >
+                      </td>
+                      <td class="px-3 py-2">
+                        <div class="flex gap-2">
+                          <button
+                            class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200"
+                          >
+                            ✎</button
+                          ><button
+                            class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200"
+                          >
+                            ⋮
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <tr class="hover:bg-stone-50">
+                      <td class="px-3 py-2">
+                        <input type="checkbox" class="accent-[#cc8b3c]" />
+                      </td>
+                      <td class="px-3 py-2 mono text-[12px] text-stone-400">
+                        12/04/25
+                      </td>
+                      <td class="px-3 py-2 mono font-medium">1305</td>
+                      <td class="px-3 py-2">Cuentas por cobrar — XYZ Ltda.</td>
+                      <td class="px-3 py-2 mono text-[11.5px] text-stone-400">
+                        FAC-0124
+                      </td>
+                      <td class="px-3 py-2 text-right mono">5,400.00</td>
+                      <td class="px-3 py-2 text-right mono text-stone-400">
+                        —
+                      </td>
+                      <td class="px-3 py-2">
+                        <span
+                          class="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700"
+                          >Revisión</span
+                        >
+                      </td>
+                      <td class="px-3 py-2">
+                        <div class="flex gap-2">
+                          <button
+                            class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200"
+                          >
+                            ✎</button
+                          ><button
+                            class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200"
+                          >
+                            ⋮
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <tr class="hover:bg-stone-50">
+                      <td class="px-3 py-2">
+                        <input type="checkbox" class="accent-[#cc8b3c]" />
+                      </td>
+                      <td class="px-3 py-2 mono text-[12px] text-stone-400">
+                        12/04/25
+                      </td>
+                      <td class="px-3 py-2 mono font-medium">4135</td>
+                      <td class="px-3 py-2">
+                        Ingresos por servicios contables
+                      </td>
+                      <td class="px-3 py-2 mono text-[11.5px] text-stone-400">
+                        FAC-0124
+                      </td>
+                      <td class="px-3 py-2 text-right mono text-stone-400">
+                        —
+                      </td>
+                      <td class="px-3 py-2 text-right mono">5,400.00</td>
+                      <td class="px-3 py-2">
+                        <span
+                          class="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700"
+                          >Revisión</span
+                        >
+                      </td>
+                      <td class="px-3 py-2">
+                        <div class="flex gap-2">
+                          <button
+                            class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200"
+                          >
+                            ✎</button
+                          ><button
+                            class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200"
+                          >
+                            ⋮
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <tr class="hover:bg-stone-50">
+                      <td class="px-3 py-2">
+                        <input type="checkbox" class="accent-[#cc8b3c]" />
+                      </td>
+                      <td class="px-3 py-2 mono text-[12px] text-stone-400">
+                        20/04/25
+                      </td>
+                      <td class="px-3 py-2 mono font-medium">2365</td>
+                      <td class="px-3 py-2">
+                        Retención en la fuente por pagar
+                      </td>
+                      <td class="px-3 py-2 mono text-[11.5px] text-stone-400">
+                        RET-042025
+                      </td>
+                      <td class="px-3 py-2 text-right mono text-stone-400">
+                        —
+                      </td>
+                      <td class="px-3 py-2 text-right mono">162.00</td>
+                      <td class="px-3 py-2">
+                        <span
+                          class="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-700"
+                          >Vencido</span
+                        >
+                      </td>
+                      <td class="px-3 py-2">
+                        <div class="flex gap-2">
+                          <button
+                            class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200"
+                          >
+                            ✎</button
+                          ><button
+                            class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200"
+                          >
+                            ⋮
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot
+                    class="border-t border-stone-200 bg-amber-50 text-[#7c4f1a]"
+                  >
+                    <tr>
+                      <td
+                        colspan="5"
+                        class="px-3 py-2 text-right text-[11.5px] uppercase tracking-[.05em]"
+                      >
+                        Totales del período
+                      </td>
+                      <td class="mono px-3 py-2 text-right font-semibold">
+                        17,200.00
+                      </td>
+                      <td class="mono px-3 py-2 text-right font-semibold">
+                        15,562.00
+                      </td>
+                      <td colspan="2"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              <div
+                class="flex items-center justify-between border-t border-stone-200 px-4 py-3"
+              >
+                <p class="text-[12px] text-stone-400">
+                  Mostrando 6 de 142 registros
+                </p>
+                <div class="flex items-center gap-1">
+                  <button
+                    class="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-[13px] mono text-stone-500 disabled:opacity-40"
+                    disabled
+                  >
+                    ‹
+                  </button>
+                  <button
+                    class="rounded-md border border-[#cc8b3c] bg-[#cc8b3c] px-2.5 py-1 text-[13px] mono text-white"
+                  >
+                    1
+                  </button>
+                  <button
+                    class="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-[13px] mono text-stone-500"
+                  >
+                    2
+                  </button>
+                  <button
+                    class="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-[13px] mono text-stone-500"
+                  >
+                    3
+                  </button>
+                  <span class="px-1 text-[13px] text-stone-400">…</span>
+                  <button
+                    class="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-[13px] mono text-stone-500"
+                  >
+                    24
+                  </button>
+                  <button
+                    class="rounded-md border border-stone-200 bg-white px-2.5 py-1 text-[13px] mono text-stone-500"
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- FORM -->
+          <section id="sec-form" class="hidden space-y-4">
+            <div class="border-b border-stone-200 pb-3">
+              <p
+                class="text-[11.5px] font-semibold uppercase tracking-[.07em] text-stone-400"
+              >
+                Formularios · Asiento &amp; Tercero
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+              <div class="rounded-xl border border-stone-200 bg-white p-4">
+                <p class="mb-4 text-[13.5px] font-semibold text-stone-900">
+                  Nuevo Asiento Contable
+                </p>
+
+                <div class="space-y-3">
+                  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label
+                        class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                        >Fecha *</label
+                      >
+                      <input
+                        class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c]"
+                        type="date"
+                        value="2025-04-17"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                        >N.° Asiento</label
+                      >
+                      <input
+                        class="w-full rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-[13px] mono text-stone-400"
+                        type="text"
+                        value="AS-2025-0142"
+                        readonly
+                      />
+                      <p class="mt-1 text-[11.5px] text-stone-400">
+                        Generado automáticamente
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                      >Descripción *</label
+                    >
+                    <input
+                      class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-[#cc8b3c]"
+                      type="text"
+                      placeholder="Concepto del movimiento…"
+                    />
+                  </div>
+
+                  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label
+                        class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                        >Cuenta débito *</label
+                      >
+                      <select
+                        class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c]"
+                      >
+                        <option>Seleccionar cuenta…</option>
+                        <option>1105 — Caja</option>
+                        <option>1110 — Bancos</option>
+                        <option>1305 — Clientes</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label
+                        class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                        >Valor débito *</label
+                      >
+                      <div class="flex">
+                        <span
+                          class="rounded-l-lg border border-r-0 border-stone-200 bg-stone-100 px-3 py-2 text-[13px] text-stone-500 mono"
+                          >$</span
+                        >
+                        <input
+                          class="w-full rounded-r-lg border border-stone-200 bg-white px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c]"
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label
+                        class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                        >Cuenta crédito *</label
+                      >
+                      <select
+                        class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c]"
+                      >
+                        <option>Seleccionar cuenta…</option>
+                        <option>2105 — Proveedores</option>
+                        <option>2365 — Retención</option>
+                        <option>4135 — Ingresos</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label
+                        class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                        >Valor crédito *</label
+                      >
+                      <div class="flex">
+                        <span
+                          class="rounded-l-lg border border-r-0 border-stone-200 bg-stone-100 px-3 py-2 text-[13px] text-stone-500 mono"
+                          >$</span
+                        >
+                        <input
+                          class="w-full rounded-r-lg border border-red-300 bg-white px-3 py-2 text-[13px] mono outline-none focus:border-red-500"
+                          type="number"
+                          step="0.01"
+                          value="5400.00"
+                        />
+                      </div>
+                      <p class="mt-1 text-[11.5px] text-red-600">
+                        Débito ≠ Crédito. Verifique.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                      >Documento soporte</label
+                    >
+                    <input
+                      class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c]"
+                      type="text"
+                      placeholder="FAC-0000 / REC-0000…"
+                    />
+                    <p class="mt-1 text-[11.5px] text-stone-400">
+                      Factura, recibo u otro documento soporte
+                    </p>
+                  </div>
+
+                  <div class="flex flex-wrap gap-4">
+                    <label
+                      class="flex items-center gap-2 text-[13px] text-stone-600"
+                      ><input
+                        type="checkbox"
+                        checked
+                        class="accent-[#cc8b3c]"
+                      />
+                      Guardar como borrador</label
+                    >
+                    <label
+                      class="flex items-center gap-2 text-[13px] text-stone-600"
+                      ><input type="checkbox" class="accent-[#cc8b3c]" />
+                      Requiere aprobación</label
+                    >
+                  </div>
+
+                  <div class="flex justify-end gap-2 pt-1">
+                    <button
+                      class="rounded-lg border border-stone-200 bg-white px-4 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-50"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      class="rounded-lg bg-[#cc8b3c] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#b87830]"
+                    >
+                      Guardar asiento
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-stone-200 bg-white p-4">
+                <p class="mb-4 text-[13.5px] font-semibold text-stone-900">
+                  Datos del Tercero
+                </p>
+
+                <div class="space-y-3">
+                  <div>
+                    <label
+                      class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                      >Tipo de tercero</label
+                    >
+                    <div class="flex flex-wrap gap-4">
+                      <label
+                        class="flex items-center gap-2 text-[13px] text-stone-600"
+                        ><input
+                          type="radio"
+                          name="tipo"
+                          checked
+                          class="accent-[#cc8b3c]"
+                        />
+                        Cliente</label
+                      >
+                      <label
+                        class="flex items-center gap-2 text-[13px] text-stone-600"
+                        ><input
+                          type="radio"
+                          name="tipo"
+                          class="accent-[#cc8b3c]"
+                        />
+                        Proveedor</label
+                      >
+                      <label
+                        class="flex items-center gap-2 text-[13px] text-stone-600"
+                        ><input
+                          type="radio"
+                          name="tipo"
+                          class="accent-[#cc8b3c]"
+                        />
+                        Ambos</label
+                      >
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 gap-3 sm:grid-cols-[120px_1fr]">
+                    <div>
+                      <label
+                        class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                        >Tipo doc.</label
+                      >
+                      <select
+                        class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-[#cc8b3c]"
+                      >
+                        <option>NIT</option>
+                        <option>CC</option>
+                        <option>CE</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label
+                        class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                        >Número *</label
+                      >
+                      <input
+                        class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c]"
+                        type="text"
+                        placeholder="900.123.456-7"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                      >Razón social / Nombre *</label
+                    >
+                    <input
+                      class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-[#cc8b3c]"
+                      type="text"
+                      placeholder="Empresa S.A.S. o nombre completo"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                      >Correo electrónico</label
+                    >
+                    <input
+                      class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-[#cc8b3c]"
+                      type="email"
+                      placeholder="contacto@empresa.com"
+                    />
+                  </div>
+
+                  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label
+                        class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                        >Teléfono</label
+                      >
+                      <input
+                        class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c]"
+                        type="tel"
+                        placeholder="+57 300 000 0000"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                        >Ciudad</label
+                      >
+                      <input
+                        class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-[#cc8b3c]"
+                        type="text"
+                        placeholder="Bucaramanga"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                      >Observaciones</label
+                    >
+                    <textarea
+                      class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-[#cc8b3c]"
+                      rows="3"
+                      placeholder="Notas internas sobre este tercero…"
+                    ></textarea>
+                  </div>
+
+                  <div class="flex flex-wrap gap-4">
+                    <label
+                      class="flex items-center gap-2 text-[13px] text-stone-600"
+                      ><input
+                        type="checkbox"
+                        checked
+                        class="accent-[#cc8b3c]"
+                      />
+                      Activo</label
+                    >
+                    <label
+                      class="flex items-center gap-2 text-[13px] text-stone-600"
+                      ><input type="checkbox" class="accent-[#cc8b3c]" /> Gran
+                      contribuyente</label
+                    >
+                    <label
+                      class="flex items-center gap-2 text-[13px] text-stone-600"
+                      ><input type="checkbox" class="accent-[#cc8b3c]" />
+                      Autorretenedor</label
+                    >
+                  </div>
+
+                  <div class="flex justify-end gap-2 pt-1">
+                    <button
+                      class="rounded-lg border border-stone-200 bg-white px-4 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-50"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      class="rounded-lg bg-[#cc8b3c] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#b87830]"
+                    >
+                      Crear tercero
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- REPORTES -->
+          <section id="sec-reportes" class="hidden space-y-4">
+            <div class="border-b border-stone-200 pb-3">
+              <p
+                class="text-[11.5px] font-semibold uppercase tracking-[.07em] text-stone-400"
+              >
+                Reportes Financieros
+              </p>
+            </div>
+
+            <div
+              class="overflow-hidden rounded-xl border border-stone-200 bg-white"
+            >
+              <div class="border-b border-stone-200">
+                <div class="flex overflow-x-auto">
+                  <button
+                    class="tab on"
+                    onclick="switchTab('tabs-r', 'tr-bal', this)"
+                  >
+                    Balance General
+                  </button>
+                  <button
+                    class="tab"
+                    onclick="switchTab('tabs-r', 'tr-pyg', this)"
+                  >
+                    P&amp;G
+                  </button>
+                  <button
+                    class="tab"
+                    onclick="switchTab('tabs-r', 'tr-flujo', this)"
+                  >
+                    Flujo de Caja
+                  </button>
+                  <button
+                    class="tab"
+                    onclick="switchTab('tabs-r', 'tr-notas', this)"
+                  >
+                    Notas
+                  </button>
+                </div>
+              </div>
+
+              <div class="p-4">
+                <div id="tr-bal" class="tab-pane on">
+                  <p class="mb-3 text-[13px] text-stone-400">
+                    Situación financiera al 30 de Abril 2025 · Cifras en COP
+                  </p>
+                  <div
+                    class="overflow-x-auto rounded-lg border border-stone-200"
+                  >
+                    <table class="min-w-[520px] w-full">
+                      <thead
+                        class="bg-stone-50 text-[11.5px] uppercase tracking-[.05em] text-stone-400"
+                      >
+                        <tr>
+                          <th class="px-3 py-2 text-left font-semibold mono">
+                            Código
+                          </th>
+                          <th class="px-3 py-2 text-left font-semibold">
+                            Descripción
+                          </th>
+                          <th class="px-3 py-2 text-right font-semibold">
+                            Saldo
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-stone-200">
+                        <tr>
+                          <td class="px-3 py-2 mono text-[12.5px]">1105</td>
+                          <td class="px-3 py-2">Caja</td>
+                          <td class="mono px-3 py-2 text-right">2,400.00</td>
+                        </tr>
+                        <tr>
+                          <td class="px-3 py-2 mono text-[12.5px]">1110</td>
+                          <td class="px-3 py-2">Bancos</td>
+                          <td class="mono px-3 py-2 text-right">18,200.00</td>
+                        </tr>
+                        <tr>
+                          <td class="px-3 py-2 mono text-[12.5px]">1305</td>
+                          <td class="px-3 py-2">Clientes / C×C</td>
+                          <td class="mono px-3 py-2 text-right">9,100.00</td>
+                        </tr>
+                        <tr>
+                          <td class="px-3 py-2 mono text-[12.5px]">1524</td>
+                          <td class="px-3 py-2">Equipo de oficina</td>
+                          <td class="mono px-3 py-2 text-right">8,500.00</td>
+                        </tr>
+                      </tbody>
+                      <tfoot
+                        class="border-t border-stone-200 bg-amber-50 text-[#7c4f1a]"
+                      >
+                        <tr>
+                          <td
+                            colspan="2"
+                            class="px-3 py-2 text-right text-[11.5px] uppercase tracking-[.05em]"
+                          >
+                            Total activos
+                          </td>
+                          <td class="mono px-3 py-2 text-right font-semibold">
+                            38,200.00
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+
+                <div id="tr-pyg" class="tab-pane hidden">
+                  <p class="mb-3 text-[13px] text-stone-400">
+                    Estado de resultados — Enero a Abril 2025
+                  </p>
+                  <div
+                    class="overflow-x-auto rounded-lg border border-stone-200"
+                  >
+                    <table class="min-w-[520px] w-full">
+                      <thead
+                        class="bg-stone-50 text-[11.5px] uppercase tracking-[.05em] text-stone-400"
+                      >
+                        <tr>
+                          <th class="px-3 py-2 text-left font-semibold mono">
+                            Código
+                          </th>
+                          <th class="px-3 py-2 text-left font-semibold">
+                            Descripción
+                          </th>
+                          <th class="px-3 py-2 text-right font-semibold">
+                            Valor
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-stone-200">
+                        <tr>
+                          <td class="px-3 py-2 mono text-[12.5px]">4135</td>
+                          <td class="px-3 py-2">Ingresos por servicios</td>
+                          <td class="mono px-3 py-2 text-right text-green-700">
+                            48,320.00
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="px-3 py-2 mono text-[12.5px]">5210</td>
+                          <td class="px-3 py-2">Gastos administrativos</td>
+                          <td class="mono px-3 py-2 text-right text-red-700">
+                            (18,400.00)
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="px-3 py-2 mono text-[12.5px]">5305</td>
+                          <td class="px-3 py-2">Gastos financieros</td>
+                          <td class="mono px-3 py-2 text-right text-red-700">
+                            (3,200.00)
+                          </td>
+                        </tr>
+                      </tbody>
+                      <tfoot
+                        class="border-t border-stone-200 bg-amber-50 text-[#7c4f1a]"
+                      >
+                        <tr>
+                          <td
+                            colspan="2"
+                            class="px-3 py-2 text-right text-[11.5px] uppercase tracking-[.05em]"
+                          >
+                            Utilidad neta
+                          </td>
+                          <td class="mono px-3 py-2 text-right font-semibold">
+                            26,720.00
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+
+                <div id="tr-flujo" class="tab-pane hidden">
+                  <p class="mb-3 text-[13px] text-stone-400">
+                    Flujo de efectivo — resumen mensual
+                  </p>
+                  <div class="space-y-4">
+                    <div>
+                      <div class="mb-1.5 flex justify-between text-[13px]">
+                        <span class="text-stone-600"
+                          >Actividades operacionales</span
+                        >
+                        <span class="mono font-medium text-green-700"
+                          >+ $31,200</span
+                        >
+                      </div>
+                      <div
+                        class="h-1.5 overflow-hidden rounded-full bg-stone-200"
+                      >
+                        <div
+                          class="h-full w-[75%] rounded-full bg-green-600"
+                        ></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="mb-1.5 flex justify-between text-[13px]">
+                        <span class="text-stone-600"
+                          >Actividades de inversión</span
+                        >
+                        <span class="mono font-medium text-red-700"
+                          >− $8,500</span
+                        >
+                      </div>
+                      <div
+                        class="h-1.5 overflow-hidden rounded-full bg-stone-200"
+                      >
+                        <div
+                          class="h-full w-[35%] rounded-full bg-red-600"
+                        ></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="mb-1.5 flex justify-between text-[13px]">
+                        <span class="text-stone-600"
+                          >Actividades de financiación</span
+                        >
+                        <span class="mono font-medium text-blue-700"
+                          >+ $5,000</span
+                        >
+                      </div>
+                      <div
+                        class="h-1.5 overflow-hidden rounded-full bg-stone-200"
+                      >
+                        <div
+                          class="h-full w-[20%] rounded-full bg-blue-600"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="tr-notas" class="tab-pane hidden">
+                  <div
+                    class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-[13px] text-blue-900"
+                  >
+                    Preparado bajo NIC 1 — Presentación de Estados Financieros.
+                    Sujeto a revisión por auditor externo. Período: 01/01/2025 –
+                    30/04/2025.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- BANCOS -->
+          <section id="sec-bancos" class="hidden space-y-4">
+            <div class="border-b border-stone-200 pb-3">
+              <p
+                class="text-[11.5px] font-semibold uppercase tracking-[.07em] text-stone-400"
+              >
+                Cuentas Bancarias
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
+              <div class="rounded-xl border border-stone-200 bg-white p-4">
+                <div class="mb-3 flex items-start justify-between gap-3">
+                  <div>
+                    <p class="text-[13.5px] font-semibold text-stone-900">
+                      Bancolombia S.A.
+                    </p>
+                    <p class="mono text-[12px] text-stone-400">**** 4821</p>
+                  </div>
+                  <span
+                    class="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700"
+                    >Activa</span
+                  >
+                </div>
+                <p class="mono mb-1 text-[20px] font-medium text-stone-900">
+                  $18,200.00
+                </p>
+                <p class="mb-3 text-[11.5px] text-stone-400">
+                  Cta. corriente · Hoy
+                </p>
+                <div class="flex gap-2">
+                  <button
+                    class="flex-1 rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-50"
+                  >
+                    Movimientos
+                  </button>
+                  <button
+                    class="rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] text-stone-700 hover:bg-stone-50"
+                  >
+                    ⋮
+                  </button>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-stone-200 bg-white p-4">
+                <div class="mb-3 flex items-start justify-between gap-3">
+                  <div>
+                    <p class="text-[13.5px] font-semibold text-stone-900">
+                      Banco de Bogotá
+                    </p>
+                    <p class="mono text-[12px] text-stone-400">**** 0932</p>
+                  </div>
+                  <span
+                    class="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700"
+                    >Activa</span
+                  >
+                </div>
+                <p class="mono mb-1 text-[20px] font-medium text-stone-900">
+                  $4,850.00
+                </p>
+                <p class="mb-3 text-[11.5px] text-stone-400">
+                  Cta. ahorros · Ayer
+                </p>
+                <div class="flex gap-2">
+                  <button
+                    class="flex-1 rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-50"
+                  >
+                    Movimientos
+                  </button>
+                  <button
+                    class="rounded-lg border border-stone-200 bg-white px-3 py-2 text-[13px] text-stone-700 hover:bg-stone-50"
+                  >
+                    ⋮
+                  </button>
+                </div>
+              </div>
+
+              <div
+                class="flex min-h-[140px] items-center justify-center rounded-xl border border-dashed border-stone-300 bg-stone-50 p-4"
+              >
+                <div class="text-center text-stone-400">
+                  <svg
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    class="mx-auto mb-1.5"
+                  >
+                    <path
+                      d="M12 4v16m8-8H4"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    ></path>
+                  </svg>
+                  <p class="text-[13px] font-medium">Agregar cuenta</p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="overflow-hidden rounded-xl border border-stone-200 bg-white"
+            >
+              <div class="border-b border-stone-200 px-4 py-3">
+                <p class="text-[13.5px] font-semibold text-stone-900">
+                  Últimos movimientos — Bancolombia
+                </p>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="min-w-[760px] w-full">
+                  <thead
+                    class="bg-stone-50 text-[11.5px] uppercase tracking-[.05em] text-stone-400"
+                  >
+                    <tr>
+                      <th class="px-3 py-2 text-left font-semibold">Fecha</th>
+                      <th class="px-3 py-2 text-left font-semibold">
+                        Descripción
+                      </th>
+                      <th class="px-3 py-2 text-left font-semibold">
+                        Referencia
+                      </th>
+                      <th class="px-3 py-2 text-right font-semibold">Débito</th>
+                      <th class="px-3 py-2 text-right font-semibold">
+                        Crédito
+                      </th>
+                      <th class="px-3 py-2 text-right font-semibold">Saldo</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-stone-200">
+                    <tr>
+                      <td class="px-3 py-2 mono text-[12px] text-stone-400">
+                        14/04
+                      </td>
+                      <td class="px-3 py-2">Pago cliente ABC</td>
+                      <td class="px-3 py-2 mono text-[11.5px] text-stone-400">
+                        TRF-001
+                      </td>
+                      <td class="px-3 py-2 text-right mono text-stone-400">
+                        —
+                      </td>
+                      <td class="px-3 py-2 text-right mono text-green-700">
+                        5,000.00
+                      </td>
+                      <td class="px-3 py-2 text-right mono">18,200.00</td>
+                    </tr>
+                    <tr>
+                      <td class="px-3 py-2 mono text-[12px] text-stone-400">
+                        12/04
+                      </td>
+                      <td class="px-3 py-2">Pago arriendo</td>
+                      <td class="px-3 py-2 mono text-[11.5px] text-stone-400">
+                        TRF-002
+                      </td>
+                      <td class="px-3 py-2 text-right mono text-red-700">
+                        1,800.00
+                      </td>
+                      <td class="px-3 py-2 text-right mono text-stone-400">
+                        —
+                      </td>
+                      <td class="px-3 py-2 text-right mono">13,200.00</td>
+                    </tr>
+                    <tr>
+                      <td class="px-3 py-2 mono text-[12px] text-stone-400">
+                        05/04
+                      </td>
+                      <td class="px-3 py-2">Nómina abril</td>
+                      <td class="px-3 py-2 mono text-[11.5px] text-stone-400">
+                        NOM-042025
+                      </td>
+                      <td class="px-3 py-2 text-right mono text-red-700">
+                        8,200.00
+                      </td>
+                      <td class="px-3 py-2 text-right mono text-stone-400">
+                        —
+                      </td>
+                      <td class="px-3 py-2 text-right mono">15,000.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- UI -->
+          <section id="sec-ui" class="hidden space-y-4">
+            <div class="border-b border-stone-200 pb-3">
+              <p
+                class="text-[11.5px] font-semibold uppercase tracking-[.07em] text-stone-400"
+              >
+                Librería de Componentes UI — Referencia base
+              </p>
+            </div>
+
+            <div class="space-y-4">
+              <div class="rounded-xl border border-stone-200 bg-white p-4">
+                <p
+                  class="mb-3 text-[11.5px] font-semibold uppercase tracking-[.07em] text-stone-400"
+                >
+                  Botones — todas las variantes
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    class="rounded-lg bg-[#cc8b3c] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#b87830]"
+                  >
+                    Primary
+                  </button>
+                  <button
+                    class="rounded-lg border border-stone-200 bg-white px-4 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-50"
+                  >
+                    Secondary
+                  </button>
+                  <button
+                    class="rounded-lg bg-red-600 px-4 py-2 text-[13px] font-medium text-white hover:bg-red-700"
+                  >
+                    Danger
+                  </button>
+                  <button
+                    class="rounded-lg px-4 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100"
+                  >
+                    Ghost
+                  </button>
+                  <button
+                    class="rounded-lg bg-[#cc8b3c] px-4 py-2 text-[13px] font-medium text-white opacity-50"
+                  >
+                    Disabled
+                  </button>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-stone-200 bg-white p-4">
+                <p
+                  class="mb-3 text-[11.5px] font-semibold uppercase tracking-[.07em] text-stone-400"
+                >
+                  Badges — estados contables
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    class="rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-medium text-green-700"
+                    >Aprobado</span
+                  >
+                  <span
+                    class="rounded-full bg-red-100 px-2.5 py-1 text-[11px] font-medium text-red-700"
+                    >Vencido</span
+                  >
+                  <span
+                    class="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-medium text-amber-700"
+                    >Pendiente</span
+                  >
+                  <span
+                    class="rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-medium text-blue-700"
+                    >En revisión</span
+                  >
+                  <span
+                    class="rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-medium text-stone-500"
+                    >Borrador</span
+                  >
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-stone-200 bg-white p-4">
+                <p
+                  class="mb-3 text-[11.5px] font-semibold uppercase tracking-[.07em] text-stone-400"
+                >
+                  Alertas del sistema
+                </p>
+                <div class="space-y-2">
+                  <div
+                    class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-[13px] text-green-900"
+                  >
+                    <strong>Éxito:</strong> Asiento AS-2025-0141 guardado y
+                    aprobado correctamente.
+                  </div>
+                  <div
+                    class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-900"
+                  >
+                    <strong>Error de cuadre:</strong> Débito $5,400 ≠ Crédito
+                    $5,562. El asiento no balancea.
+                  </div>
+                  <div
+                    class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-900"
+                  >
+                    <strong>Atención:</strong> 3 retenciones vencen el 20 de
+                    abril. Realice el pago.
+                  </div>
+                  <div
+                    class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-[13px] text-blue-900"
+                  >
+                    <strong>Info:</strong> El período fiscal Q1 cierra el 30 de
+                    abril de 2025.
+                  </div>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-stone-200 bg-white p-4">
+                <p
+                  class="mb-3 text-[11.5px] font-semibold uppercase tracking-[.07em] text-stone-400"
+                >
+                  Notas y leyendas
+                </p>
+                <div class="space-y-2">
+                  <div
+                    class="rounded-lg border-l-4 border-[#cc8b3c] bg-amber-50 px-4 py-3 text-[13px] text-[#7c4f1a]"
+                  >
+                    📌 <strong>Nota contable:</strong> Todo asiento debe tener
+                    documento soporte adjunto según art. 123 del E.T.
+                  </div>
+                  <div
+                    class="rounded-lg border-l-4 border-blue-500 bg-blue-50 px-4 py-3 text-[13px] text-blue-900"
+                  >
+                    ℹ️ <strong>Recuerde:</strong> IVA bimestral debe presentarse
+                    antes del día 12 del mes siguiente.
+                  </div>
+                  <div
+                    class="rounded-lg border-l-4 border-red-500 bg-red-50 px-4 py-3 text-[13px] text-red-900"
+                  >
+                    ⚠️ <strong>Auditoría:</strong> No modifique asientos sin
+                    autorización del revisor fiscal.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- MODALES (sin cambios) -->
+    <div
+      id="modal-asiento"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-3 backdrop-blur-[2px]"
+      onclick="if (event.target === this) closeModal('modal-asiento');"
+    >
+      <div
+        class="max-h-[calc(100dvh-24px)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-stone-200 bg-white shadow-2xl"
+      >
+        <div
+          class="flex items-center justify-between border-b border-stone-200 px-4 py-3"
+        >
+          <p class="text-[13.5px] font-semibold">Nuevo Asiento Contable</p>
+          <button
+            class="rounded-md px-2 py-1 text-stone-500 hover:bg-stone-100"
+            onclick="closeModal('modal-asiento')"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="space-y-3 p-4">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                >Fecha *</label
+              >
+              <input
+                class="w-full rounded-lg border border-stone-200 px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c]"
+                type="date"
+                value="2025-04-17"
+              />
+            </div>
+            <div>
+              <label class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                >Referencia</label
+              >
+              <input
+                class="w-full rounded-lg border border-stone-200 px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c]"
+                type="text"
+                placeholder="FAC-0000"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-1 block text-[12.5px] font-medium text-stone-600"
+              >Descripción *</label
+            >
+            <input
+              class="w-full rounded-lg border border-stone-200 px-3 py-2 text-[13px] outline-none focus:border-[#cc8b3c]"
+              type="text"
+              placeholder="Concepto del asiento…"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                >Cuenta débito</label
+              >
+              <select
+                class="w-full rounded-lg border border-stone-200 px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c]"
+              >
+                <option>1105 — Caja</option>
+                <option>1110 — Bancos</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                >Débito $</label
+              >
+              <div class="flex">
+                <span
+                  class="rounded-l-lg border border-r-0 border-stone-200 bg-stone-100 px-3 py-2 mono text-[13px] text-stone-500"
+                  >$</span
+                >
+                <input
+                  class="w-full rounded-r-lg border border-stone-200 px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c]"
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                >Cuenta crédito</label
+              >
+              <select
+                class="w-full rounded-lg border border-stone-200 px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c]"
+              >
+                <option>4135 — Ingresos</option>
+                <option>2105 — Proveedores</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block text-[12.5px] font-medium text-stone-600"
+                >Crédito $</label
+              >
+              <div class="flex">
+                <span
+                  class="rounded-l-lg border border-r-0 border-stone-200 bg-stone-100 px-3 py-2 mono text-[13px] text-stone-500"
+                  >$</span
+                >
+                <input
+                  class="w-full rounded-r-lg border border-stone-200 px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c]"
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-[12px] text-blue-900"
+          >
+            El total de débitos debe ser igual al total de créditos para que el
+            asiento sea válido.
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 border-t border-stone-200 px-4 py-3">
+          <button
+            class="rounded-lg border border-stone-200 bg-white px-4 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-50"
+            onclick="closeModal('modal-asiento')"
+          >
+            Cancelar
+          </button>
+          <button
+            class="rounded-lg bg-[#cc8b3c] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#b87830]"
+          >
+            Guardar asiento
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="modal-confirm"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-3 backdrop-blur-[2px]"
+      onclick="if (event.target === this) closeModal('modal-confirm');"
+    >
+      <div
+        class="max-h-[calc(100dvh-24px)] w-full max-w-md overflow-y-auto rounded-2xl border border-stone-200 bg-white shadow-2xl"
+      >
+        <div
+          class="flex items-center justify-between border-b border-stone-200 px-4 py-3"
+        >
+          <p class="text-[13.5px] font-semibold">Confirmar aprobación</p>
+          <button
+            class="rounded-md px-2 py-1 text-stone-500 hover:bg-stone-100"
+            onclick="closeModal('modal-confirm')"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="p-4">
+          <p class="text-[13.5px] text-stone-600">
+            ¿Aprobar el asiento
+            <span class="mono font-semibold">AS-2025-0141</span>? No se puede
+            deshacer sin autorización del revisor fiscal.
+          </p>
+        </div>
+        <div class="flex justify-end gap-2 border-t border-stone-200 px-4 py-3">
+          <button
+            class="rounded-lg border border-stone-200 bg-white px-4 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-50"
+            onclick="closeModal('modal-confirm')"
+          >
+            Cancelar
+          </button>
+          <button
+            class="rounded-lg bg-[#cc8b3c] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#b87830]"
+          >
+            Sí, aprobar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="modal-delete"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-3 backdrop-blur-[2px]"
+      onclick="if (event.target === this) closeModal('modal-delete');"
+    >
+      <div
+        class="max-h-[calc(100dvh-24px)] w-full max-w-md overflow-y-auto rounded-2xl border border-stone-200 bg-white shadow-2xl"
+      >
+        <div
+          class="flex items-center justify-between border-b border-red-200 px-4 py-3"
+        >
+          <p class="text-[13.5px] font-semibold text-red-600">
+            Eliminar registro
+          </p>
+          <button
+            class="rounded-md px-2 py-1 text-stone-500 hover:bg-stone-100"
+            onclick="closeModal('modal-delete')"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="space-y-3 p-4">
+          <div
+            class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-900"
+          >
+            Esta acción es <strong>permanente</strong> e irreversible.
+          </div>
+          <div>
+            <label class="mb-1 block text-[12.5px] font-medium text-stone-600"
+              >Escriba <span class="mono font-semibold">ELIMINAR</span> para
+              confirmar</label
+            >
+            <input
+              class="w-full rounded-lg border border-stone-200 px-3 py-2 text-[13px] mono outline-none focus:border-[#cc8b3c]"
+              type="text"
+              placeholder="ELIMINAR"
+            />
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 border-t border-stone-200 px-4 py-3">
+          <button
+            class="rounded-lg border border-stone-200 bg-white px-4 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-50"
+            onclick="closeModal('modal-delete')"
+          >
+            Cancelar
+          </button>
+          <button
+            class="rounded-lg bg-red-600 px-4 py-2 text-[13px] font-medium text-white hover:bg-red-700"
+          >
+            Eliminar definitivamente
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SECS = [
+        "sec-dashboard",
+        "sec-tabla",
+        "sec-form",
+        "sec-reportes",
+        "sec-bancos",
+        "sec-ui",
+      ];
+      const TITLES = {
+        "sec-dashboard": "Dashboard",
+        "sec-tabla": "Libro Diario",
+        "sec-form": "Nuevo Asiento",
+        "sec-reportes": "Reportes",
+        "sec-bancos": "Bancos",
+        "sec-ui": "Componentes UI",
+      };
+
+      function setActiveSection(id) {
+        SECS.forEach((s) => {
+          const el = document.getElementById(s);
+          if (el) el.classList.toggle("hidden", s !== id);
+        });
+        document.getElementById("tb-title").textContent = TITLES[id] || "";
+        document.getElementById("main-scroll").scrollTo(0, 0);
+      }
+
+      function showSection(btn, id) {
+        setActiveSection(id);
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((x) => x.classList.remove("active"));
+        if (btn) btn.classList.add("active");
+        if (window.innerWidth < 1024) toggleSidebar(false);
+      }
+
+      function showSectionById(id) {
+        setActiveSection(id);
+        const order = {
+          "sec-dashboard": 0,
+          "sec-tabla": 1,
+          "sec-form": 2,
+          "sec-reportes": 3,
+          "sec-bancos": 4,
+          "sec-ui": 5,
+        };
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((x, i) => x.classList.toggle("active", i === order[id]));
+        if (window.innerWidth < 1024) toggleSidebar(false);
+      }
+
+      function openModal(id) {
+        const modal = document.getElementById(id);
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeModal(id) {
+        const modal = document.getElementById(id);
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        document.body.style.overflow = "";
+      }
+
+      function toggleDD(id) {
+        const menu = document.getElementById(id);
+        const isOpen = menu.classList.contains("open");
+        document
+          .querySelectorAll(".dd-menu")
+          .forEach((m) => m.classList.remove("open"));
+        if (!isOpen) menu.classList.add("open");
+      }
+
+      function switchTab(barId, panelId, btn) {
+        const bar = document.getElementById(barId);
+        if (!bar) return;
+        const container = bar.closest(".border-stone-200")?.parentElement;
+        if (!container) return;
+        const tabs = container.querySelectorAll(".tab");
+        const panes = container.querySelectorAll(".tab-pane");
+        tabs.forEach((t) => t.classList.remove("on"));
+        btn.classList.add("on");
+        panes.forEach((p) => p.classList.add("hidden"));
+        document.getElementById(panelId).classList.remove("hidden");
+      }
+
+      function toggleSidebar(force) {
+        const sidebar = document.getElementById("sidebar");
+        const backdrop = document.getElementById("sidebarBackdrop");
+        const open =
+          typeof force === "boolean"
+            ? force
+            : sidebar.classList.contains("-translate-x-full");
+
+        if (open) {
+          sidebar.classList.remove("-translate-x-full");
+          sidebar.classList.add("translate-x-0");
+          backdrop.classList.remove("hidden");
+          document.body.style.overflow = "hidden";
+        } else {
+          sidebar.classList.add("-translate-x-full");
+          sidebar.classList.remove("translate-x-0");
+          backdrop.classList.add("hidden");
+          document.body.style.overflow = "";
+        }
+      }
+
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest(".relative")) {
+          document
+            .querySelectorAll(".dd-menu")
+            .forEach((m) => m.classList.remove("open"));
+        }
+      });
+
+      window.addEventListener("resize", () => {
+        const sidebar = document.getElementById("sidebar");
+        const backdrop = document.getElementById("sidebarBackdrop");
+
+        if (window.innerWidth >= 1024) {
+          sidebar.classList.remove("-translate-x-full");
+          sidebar.classList.add("translate-x-0");
+          backdrop.classList.add("hidden");
+          document.body.style.overflow = "";
+        } else {
+          sidebar.classList.add("-translate-x-full");
+          sidebar.classList.remove("translate-x-0");
+          backdrop.classList.add("hidden");
+        }
+      });
+
+      if (window.innerWidth >= 1024) {
+        document.getElementById("sidebar").classList.add("translate-x-0");
+      } else {
+        document.getElementById("sidebar").classList.add("-translate-x-full");
+      }
+    </script>
+  </body>
+</html>
