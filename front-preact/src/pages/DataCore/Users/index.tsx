@@ -25,12 +25,12 @@ const data = [
     ),
     acciones: (
       <div class="flex gap-2">
-        <button class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200">
+        <a href={`/data-core/usuarios/editar/${22}`} class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200">
           <Pencil size={12} />
-        </button>
-        <button class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200">
+        </a>
+        <a class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200">
           <MoreVertical size={12} />
-        </button>
+        </a>
       </div>
     ),
   },
