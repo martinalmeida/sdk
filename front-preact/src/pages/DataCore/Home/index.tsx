@@ -1,3 +1,16 @@
+import { login } from "../Core/stores";
+
+//Simulacion de login
+login({
+  id: 1,
+  nombre: "Juan Díaz",
+  correo: "juan@empresa.com",
+  rol: "Administrador",
+  cargo: "Contador",
+  estado: "activo",
+  token: "eyJ...",
+});
+
 export default function index() {
   return (
     <>

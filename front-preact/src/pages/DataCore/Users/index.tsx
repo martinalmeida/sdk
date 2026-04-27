@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect } from "preact/hooks";
 import DataTableComponent from "../Core/components/DatatableComponent";
 import LoaderComponent from "../Core/components/LoaderComponent";
 import { Pencil, MoreVertical } from "lucide-preact";
+import { setPageTitle } from "../Core/hooks";
 
 const columns = [
   { key: "fecha", label: "Fecha" },
@@ -25,7 +26,10 @@ const data = [
     ),
     acciones: (
       <div class="flex gap-2">
-        <a href={`/data-core/usuarios/editar/${22}`} class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200">
+        <a
+          href={`/data-core/usuarios/editar/${22}`}
+          class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200"
+        >
           <Pencil size={12} />
         </a>
         <a class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200">
@@ -38,6 +42,10 @@ const data = [
 
 export default function Users() {
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setPageTitle("Usuarios", "Gestión de usuarios del sistema");
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 2500);

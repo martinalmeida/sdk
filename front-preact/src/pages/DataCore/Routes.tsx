@@ -3,10 +3,7 @@ import { DataCoreLayout } from "./Core/layouts/DataCoreLayout";
 import { MatchRoute, RouteDefinition } from "../../tools/router/MatchRoute";
 import "./style.css";
 
-//Módulo: Home
 import Home from "./Home/index";
-
-//Módulo: Users
 import Users from "./Users/index";
 import EditUser from "./Users/edit";
 
