@@ -1,10 +1,13 @@
-FROM php:8.2-fpm
+FROM php:8.4-fpm
 
-# Instalar dependencias
+#Dependencias del sistema
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    libxml2-dev \
+    libzip-dev \
+    libonig-dev \
     zip \
     unzip \
     git \
@@ -12,32 +15,64 @@ RUN apt-get update && apt-get install -y \
     libsodium-dev \
     default-mysql-client \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo_mysql sodium
+    && docker-php-ext-install gd pdo_mysql sodium pcntl mbstring xml dom zip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Instalar Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+#Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copiar archivos
+#Cache de dependencias
+COPY composer.json composer.lock ./
+RUN composer install --no-interaction --no-scripts --no-autoloader --prefer-dist
+
+#Copiar proyecto
 COPY . .
 
-# Instalar dependencias de Laravel
-RUN composer install --no-interaction --optimize-autoloader
+#Autoload optimizado
+RUN composer dump-autoload --optimize
 
-# Permisos
+#Publicar config de JWT
+RUN php artisan vendor:publish \
+    --provider="PHPOpenSourceSaver\JWTAuth\Providers\LaravelServiceProvider" \
+    --no-interaction 2>/dev/null || true
+
+#Permisos
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Configurar variables de entorno por defecto
+#Variables de entorno por defecto
 ENV DB_CONNECTION=mysql
 ENV DB_HOST=db
 ENV DB_PORT=3306
 ENV DB_DATABASE=martin
 ENV DB_USERNAME=martin
 ENV DB_PASSWORD=root
-ENV SESSION_DRIVER=array
+ENV QUEUE_CONNECTION=sync
+ENV SESSION_DRIVER=file
+ENV CACHE_STORE=file
+ENV JWT_TTL=1440
+
+#Crear .env si no existe
+RUN [ -f .env ] || cp .env.example .env && \
+    sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env && \
+    sed -i 's/^DB_HOST=.*/DB_HOST=db/' .env && \
+    sed -i 's/^DB_PORT=.*/DB_PORT=3306/' .env && \
+    sed -i 's/^DB_DATABASE=.*/DB_DATABASE=martin/' .env && \
+    sed -i 's/^DB_USERNAME=.*/DB_USERNAME=martin/' .env && \
+    sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=root/' .env && \
+    sed -i 's/^SESSION_DRIVER=.*/SESSION_DRIVER=file/' .env && \
+    sed -i 's/^QUEUE_CONNECTION=.*/QUEUE_CONNECTION=sync/' .env && \
+    sed -i 's/^CACHE_STORE=.*/CACHE_STORE=file/' .env
 
 EXPOSE 8000
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+CMD bash -c "\
+    php artisan key:generate --no-interaction --force && \
+    php artisan jwt:secret --no-interaction --force && \
+    php artisan migrate --no-interaction --force && \
+    php artisan config:clear && \
+    php artisan route:clear && \
+    php artisan serve --host=0.0.0.0 --port=8000"
