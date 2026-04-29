@@ -41,7 +41,7 @@ export const authService = {
   login: (payload: LoginPayload) =>
     CoreApi.post<LoginResponse>("/login", payload),
 
-  me: () => CoreApi.get<MeResponse>("/me", { token: authToken.value }),
+  me: (token: string) => CoreApi.get<MeResponse>("/me", { token }),
 
   logout: () => CoreApi.post<void>("/logout", {}, { token: authToken.value }),
 

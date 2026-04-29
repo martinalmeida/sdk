@@ -10,7 +10,6 @@ export function useAuth() {
     setLoading(true);
     setError(null);
 
-    //Login
     const loginRes = await authService.login(payload);
 
     if (loginRes.error || !loginRes.data) {
@@ -19,8 +18,7 @@ export function useAuth() {
       return false;
     }
 
-    //Obtener perfil completo con programas y permisos
-    const meRes = await authService.me();
+    const meRes = await authService.me(loginRes.data.access_token);
 
     if (meRes.error || !meRes.data) {
       setError("Error al obtener el perfil del usuario");
@@ -28,8 +26,10 @@ export function useAuth() {
       return false;
     }
 
-    //Guardar en store
     loginFromResponse(loginRes.data, meRes.data);
+
+    // Redirige al sistema
+    window.location.href = "/base";
 
     setLoading(false);
     return true;
@@ -38,6 +38,7 @@ export function useAuth() {
   async function handleLogout(): Promise<void> {
     await authService.logout();
     logoutStore();
+    window.location.href = "/";
   }
 
   return { login, handleLogout, loading, error, setError };

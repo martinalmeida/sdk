@@ -2,26 +2,25 @@ import { signal, computed } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 import {
   authUser,
-  logout,
   userName,
   userCargo,
   userRol,
   userEstado,
-} from "../stores";
+} from "../../../Auth/stores";
 import { useAuth } from "../../../Auth/hooks";
 
-//Signals de UI (no persisten, son solo de sesión visual)
+// ── Signals de UI ─────────────────────────────────────────────
 export const sidebarOpen = signal(false);
 export const userMenuOpen = signal(false);
 export const pageTitle = signal("Dashboard");
 export const pageSubtitle = signal("Panel principal");
 
-//Computed
+// ── Computed ──────────────────────────────────────────────────
 export const sidebarTranslate = computed(() =>
   sidebarOpen.value ? "translate-x-0" : "-translate-x-full",
 );
 
-//Acciones UI
+// ── Acciones UI ───────────────────────────────────────────────
 export function openSidebar() {
   sidebarOpen.value = true;
 }
@@ -39,12 +38,12 @@ export function setPageTitle(title: string, subtitle?: string) {
   pageSubtitle.value = subtitle ?? "";
 }
 
-//Hook que conecta efectos del DOM
+// ── Hook ──────────────────────────────────────────────────────
 export function useLayout() {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const { handleLogout } = useAuth();
 
-  //Bloquea scroll cuando sidebar está abierto en móvil
+  // Bloquea scroll cuando sidebar está abierto en móvil
   useEffect(() => {
     document.body.style.overflow = sidebarOpen.value ? "hidden" : "";
     return () => {
@@ -52,7 +51,7 @@ export function useLayout() {
     };
   }, [sidebarOpen.value]);
 
-  //Cierra menú de usuario al hacer click fuera
+  // Cierra menú de usuario al hacer click fuera
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -67,13 +66,12 @@ export function useLayout() {
   }, []);
 
   async function singOut() {
-    handleLogout();
-    logout();
+    await handleLogout();
     window.location.href = "/";
   }
 
   return {
-    //UI
+    // UI
     userMenuRef,
     sidebarOpen,
     userMenuOpen,
@@ -84,7 +82,7 @@ export function useLayout() {
     closeSidebar,
     toggleUserMenu,
     setPageTitle,
-    //Auth
+    // Auth — viene del store real
     user: authUser,
     userName,
     userRol,

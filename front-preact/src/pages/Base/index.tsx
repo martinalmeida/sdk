@@ -1,4 +1,4 @@
-export function index() {
+export default function index() {
   return (
     <>
       <div class="split-grid">
@@ -31,7 +31,9 @@ export function index() {
               Sistema de big data analitico para empresas multidepartamentales
             </p>
             <div class="mt-6 sm:mt-8">
-              <a href="/data-core" class="btn-primary">Ingresar →</a>
+              <a href="/data-core/inicio" class="btn-primary">
+                Ingresar →
+              </a>
             </div>
             <p class="mt-4 text-xs uppercase tracking-widest text-stone-400">
               Click para acceder
@@ -66,10 +68,10 @@ export function index() {
               </span>
             </div>
             <p class="mt-4 text-sm sm:text-base text-stone-600">
-			  Sistema de soporte para empresas multidepartamentales
+              Sistema de soporte para empresas multidepartamentales
             </p>
             <div class="mt-6 sm:mt-8">
-              <span class="btn-secondary">Acceder →</span>
+              <a href="#" class="btn-secondary">Acceder →</a>
             </div>
             <p class="mt-4 text-xs uppercase tracking-widest text-stone-400">
               Click para acceder
