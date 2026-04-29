@@ -137,14 +137,6 @@ export default function LoaderComponent({
             <span class="text-[#cc8b3c]">●</span>
           </div>
         </div>
-
-        {/* Terminal pill */}
-        <div class="flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2 font-mono text-[11.5px] text-stone-400">
-          <span class="text-[#cc8b3c]">$</span>
-          <span class="text-stone-500">boot</span>
-          <span>--env=production</span>
-          <span class="inline-block h-[13px] w-[7px] animate-pulse rounded-sm bg-[#cc8b3c]" />
-        </div>
       </div>
 
       {/* Version tag */}
