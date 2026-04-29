@@ -29,7 +29,7 @@ export function DataCoreLayout({ children }: Props) {
     userName,
     userCargo,
     userRol,
-    logout,
+    singOut,
   } = useLayout();
 
   return (
@@ -163,7 +163,7 @@ export function DataCoreLayout({ children }: Props) {
                     </button>
                     <div class="my-1 h-px bg-stone-200" />
                     <button
-                      onClick={logout}
+                      onClick={singOut}
                       class="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-red-600 hover:bg-red-50 rounded-lg"
                     >
                       <LogOut size={14} />

@@ -34,17 +34,8 @@ COPY . .
 #Autoload optimizado
 RUN composer dump-autoload --optimize
 
-#Crear .env si no existe y configurarlo
-RUN [ -f .env ] || cp .env.example .env
-RUN sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env && \
-    sed -i 's/^DB_HOST=.*/DB_HOST=db/' .env && \
-    sed -i 's/^DB_PORT=.*/DB_PORT=3306/' .env && \
-    sed -i 's/^DB_DATABASE=.*/DB_DATABASE=martin/' .env && \
-    sed -i 's/^DB_USERNAME=.*/DB_USERNAME=martin/' .env && \
-    sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=root/' .env && \
-    sed -i 's/^SESSION_DRIVER=.*/SESSION_DRIVER=file/' .env && \
-    sed -i 's/^QUEUE_CONNECTION=.*/QUEUE_CONNECTION=sync/' .env && \
-    sed -i 's/^CACHE_STORE=.*/CACHE_STORE=file/' .env
+#Crear .env si no existe
+RUN cp .env.example .env
 
 #Publicar config de JWT (necesita .env ya configurado)
 RUN php artisan vendor:publish \

@@ -8,6 +8,7 @@ import {
   userRol,
   userEstado,
 } from "../stores";
+import { useAuth } from "../../../Auth/hooks";
 
 //Signals de UI (no persisten, son solo de sesión visual)
 export const sidebarOpen = signal(false);
@@ -41,6 +42,7 @@ export function setPageTitle(title: string, subtitle?: string) {
 //Hook que conecta efectos del DOM
 export function useLayout() {
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const { handleLogout } = useAuth();
 
   //Bloquea scroll cuando sidebar está abierto en móvil
   useEffect(() => {
@@ -64,6 +66,12 @@ export function useLayout() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  async function singOut() {
+    handleLogout();
+    logout();
+    window.location.href = "/";
+  }
+
   return {
     //UI
     userMenuRef,
@@ -83,6 +91,6 @@ export function useLayout() {
     userCargo,
     userEstado,
     isAuthenticated: computed(() => authUser.value !== null),
-    logout,
+    singOut,
   };
 }
