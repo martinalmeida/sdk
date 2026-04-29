@@ -1,56 +1,69 @@
 <?php
-
 namespace App\Services;
 
+use App\Models\Permission;
+use App\Models\SuiteProgram;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class UserService
 {
-	/**
-	 * Lógica de inicio de sesión JWT.
-	 */
-	public function login(array $credentials): ?string
-	{
-		// Intentamos autenticar con el guard 'api' (JWT)
-		$token = Auth::guard('api')->attempt($credentials);
+    public function paginate(string $programSlug, int $perPage = 15): LengthAwarePaginator
+    {
+        return User::with(['position', 'programs'])
+            ->whereHas('programs', fn($q) => $q->where('slug', $programSlug))
+            ->paginate($perPage);
+    }
 
-		return $token ?: null;
-	}
+    public function create(array $data): User
+    {
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'position_id' => $data['position_id'] ?? null,
+            'status' => $data['status'] ?? 'active',
+        ]);
 
-	public function getAllUsers()
-	{
-		return User::with('role')->paginate(10);
-	}
+        $user->programs()->attach($data['program_id'], [
+            'role_id' => $data['role_id'],
+            'is_active' => true,
+            'granted_at' => now(),
+        ]);
 
-	public function createUser(array $data): User
-	{
-		return DB::transaction(function () use ($data) {
-			return User::create($data);
-		});
-	}
+        return $user->load(['position', 'programs']);
+    }
 
-	public function getUserById(int $id): User
-	{
-		return User::with('role')->findOrFail($id);
-	}
+    public function update(User $user, array $data): User
+    {
+        $user->update(array_filter([
+            'name' => $data['name'] ?? null,
+            'email' => $data['email'] ?? null,
+            'password' => $data['password'] ?? null,
+            'position_id' => $data['position_id'] ?? null,
+            'status' => $data['status'] ?? null,
+        ], fn($v) => !is_null($v)));
 
-	public function updateUser(User $user, array $data): User
-	{
-		return DB::transaction(function () use ($user, $data) {
-			if (isset($data['password'])) {
-				$data['password'] = Hash::make($data['password']);
-			}
+        return $user->fresh(['position', 'programs']);
+    }
 
-			$user->update($data);
-			return $user->refresh();
-		});
-	}
+    public function grantPermission(User $user, string $permissionName, string $programSlug): void
+    {
+        $permission = Permission::where('name', $permissionName)->firstOrFail();
+        $programId = SuiteProgram::where('slug', $programSlug)->value('id');
 
-	public function deleteUser(User $user): bool
-	{
-		return $user->delete();
-	}
+        $user->permissions()->syncWithoutDetaching([
+            $permission->id => ['program_id' => $programId, 'granted' => true],
+        ]);
+    }
+
+    public function revokePermission(User $user, string $permissionName, string $programSlug): void
+    {
+        $permission = Permission::where('name', $permissionName)->firstOrFail();
+        $programId = SuiteProgram::where('slug', $programSlug)->value('id');
+
+        $user->permissions()->syncWithoutDetaching([
+            $permission->id => ['program_id' => $programId, 'granted' => false],
+        ]);
+    }
 }

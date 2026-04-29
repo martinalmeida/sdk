@@ -34,7 +34,19 @@ COPY . .
 #Autoload optimizado
 RUN composer dump-autoload --optimize
 
-#Publicar config de JWT
+#Crear .env si no existe y configurarlo
+RUN [ -f .env ] || cp .env.example .env
+RUN sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env && \
+    sed -i 's/^DB_HOST=.*/DB_HOST=db/' .env && \
+    sed -i 's/^DB_PORT=.*/DB_PORT=3306/' .env && \
+    sed -i 's/^DB_DATABASE=.*/DB_DATABASE=martin/' .env && \
+    sed -i 's/^DB_USERNAME=.*/DB_USERNAME=martin/' .env && \
+    sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=root/' .env && \
+    sed -i 's/^SESSION_DRIVER=.*/SESSION_DRIVER=file/' .env && \
+    sed -i 's/^QUEUE_CONNECTION=.*/QUEUE_CONNECTION=sync/' .env && \
+    sed -i 's/^CACHE_STORE=.*/CACHE_STORE=file/' .env
+
+#Publicar config de JWT (necesita .env ya configurado)
 RUN php artisan vendor:publish \
     --provider="PHPOpenSourceSaver\JWTAuth\Providers\LaravelServiceProvider" \
     --no-interaction 2>/dev/null || true
@@ -43,7 +55,7 @@ RUN php artisan vendor:publish \
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-#Variables de entorno por defecto
+#Variables de entorno
 ENV DB_CONNECTION=mysql
 ENV DB_HOST=db
 ENV DB_PORT=3306
@@ -55,24 +67,10 @@ ENV SESSION_DRIVER=file
 ENV CACHE_STORE=file
 ENV JWT_TTL=1440
 
-#Crear .env si no existe
-RUN [ -f .env ] || cp .env.example .env && \
-    sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env && \
-    sed -i 's/^DB_HOST=.*/DB_HOST=db/' .env && \
-    sed -i 's/^DB_PORT=.*/DB_PORT=3306/' .env && \
-    sed -i 's/^DB_DATABASE=.*/DB_DATABASE=martin/' .env && \
-    sed -i 's/^DB_USERNAME=.*/DB_USERNAME=martin/' .env && \
-    sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=root/' .env && \
-    sed -i 's/^SESSION_DRIVER=.*/SESSION_DRIVER=file/' .env && \
-    sed -i 's/^QUEUE_CONNECTION=.*/QUEUE_CONNECTION=sync/' .env && \
-    sed -i 's/^CACHE_STORE=.*/CACHE_STORE=file/' .env
+#Copiar y dar permisos al script de arranque
+COPY docker/start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
 
 EXPOSE 8000
 
-CMD bash -c "\
-    php artisan key:generate --no-interaction --force && \
-    php artisan jwt:secret --no-interaction --force && \
-    php artisan migrate --no-interaction --force && \
-    php artisan config:clear && \
-    php artisan route:clear && \
-    php artisan serve --host=0.0.0.0 --port=8000"
+CMD ["/usr/local/bin/start.sh"]
