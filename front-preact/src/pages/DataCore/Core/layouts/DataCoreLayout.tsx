@@ -8,7 +8,7 @@ import {
   ChevronDown,
   LogOut,
   User,
-  Settings,
+  LayoutGrid,
   X,
 } from "lucide-preact";
 import AvatarComponent from "../components/AvatarComponent";
@@ -157,10 +157,13 @@ export function DataCoreLayout({ children }: Props) {
                       <User size={14} />
                       Mi perfil
                     </button>
-                    <button class="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-stone-700 hover:bg-stone-50 rounded-lg">
-                      <Settings size={14} />
-                      Ajustes de cuenta
-                    </button>
+                    <a
+                      href="/base"
+                      class="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-stone-700 hover:bg-stone-50 rounded-lg"
+                    >
+                      <LayoutGrid size={14} />
+                      Programas
+                    </a>
                     <div class="my-1 h-px bg-stone-200" />
                     <button
                       onClick={singOut}

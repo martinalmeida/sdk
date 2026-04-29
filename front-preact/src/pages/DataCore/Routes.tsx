@@ -8,7 +8,7 @@ import Users from "./Users/index";
 import EditUser from "./Users/edit";
 
 const routes: RouteDefinition[] = [
-  { path: "/data-core/inicio", component: Home },
+  { path: "/data-core", component: Home },
   { path: "/data-core/usuarios", component: Users },
   { path: "/data-core/usuarios/editar/:id", component: EditUser },
 ];
