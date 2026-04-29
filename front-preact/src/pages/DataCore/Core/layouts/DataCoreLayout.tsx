@@ -1,8 +1,6 @@
 import { ComponentChildren } from "preact";
+import { useState } from "preact/hooks";
 import {
-  Monitor,
-  FileText,
-  LayoutDashboard,
   Bell,
   Menu,
   ChevronDown,
@@ -12,7 +10,7 @@ import {
   X,
 } from "lucide-preact";
 import AvatarComponent from "../components/AvatarComponent";
-import { useLayout, openSidebar, closeSidebar, toggleUserMenu } from "../hooks";
+import { useLayout } from "../hooks";
 
 interface Props {
   children: ComponentChildren;
@@ -30,7 +28,16 @@ export function DataCoreLayout({ children }: Props) {
     userCargo,
     userRol,
     singOut,
+    activeProgram,
+    baseUrl,
+    activeMenuItemLabel,
+    isMobile,
+    closeSidebar,
+    openSidebar,
+    toggleUserMenu,
   } = useLayout();
+
+  const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false);
 
   return (
     <section class="h-dvh overflow-hidden">
@@ -44,60 +51,110 @@ export function DataCoreLayout({ children }: Props) {
         )}
 
         <aside
-          class={`fixed inset-y-0 left-0 z-40 flex w-[84vw] max-w-[290px] flex-col border-r border-stone-200 bg-white transition-transform duration-200 lg:sticky lg:top-0 lg:h-dvh lg:w-[240px] lg:translate-x-0 ${sidebarTranslate.value}`}
+          class={`fixed inset-y-0 left-0 z-40 flex w-[84vw] max-w-[290px] flex-col border-r border-stone-200 bg-white transition-all duration-200 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0 ${
+            desktopSidebarCollapsed ? "lg:w-[84px]" : "lg:w-[240px]"
+          } ${sidebarTranslate.value}`}
         >
           {/* Header sidebar */}
-          <div class="flex h-14 items-center gap-3 border-b border-stone-200 px-4">
-            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#cc8b3c]">
-              <Monitor size={14} color="#fff" strokeWidth={2.5} />
+          <div
+            class={`flex h-14 items-center gap-3 border-b border-stone-200 px-4 ${
+              desktopSidebarCollapsed ? "lg:justify-center lg:px-3" : ""
+            }`}
+          >
+            <div
+              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md"
+              style={{ backgroundColor: activeProgram.value.accentColor }}
+            >
+              <activeProgram.value.icon
+                size={18}
+                strokeWidth={1.5}
+                color="white"
+                class="text-white"
+              />
             </div>
-            <div class="min-w-0">
+
+            <div
+              class={`min-w-0 ${desktopSidebarCollapsed ? "lg:hidden" : ""}`}
+            >
               <p class="truncate text-[15px] font-bold tracking-tight text-stone-900">
-                DataCore
+                {activeProgram.value.label}
               </p>
               <p class="truncate text-[11.5px] text-stone-400">
-                Panel Estadístico
+                {activeProgram.value.description}
               </p>
             </div>
-            <span class="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
-              v0.1
+
+            <span
+              class={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                desktopSidebarCollapsed ? "lg:hidden" : ""
+              }`}
+              style={{
+                backgroundColor: activeProgram.value.badgeBg,
+                color: activeProgram.value.badgeText,
+              }}
+            >
+              {activeProgram.value.version}
             </span>
+
             <button
               class="ml-1 inline-flex h-7 w-7 items-center justify-center rounded-md text-stone-400 hover:bg-stone-100 hover:text-stone-600 lg:hidden"
               onClick={closeSidebar}
+              aria-label="Cerrar menú lateral"
             >
               <X size={16} />
             </button>
           </div>
 
-          {/* Nav */}
+          {/* Navegación dinámica con los menús del programa activo */}
           <nav class="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin">
-            <div class="mb-2 px-3 text-[10.5px] font-semibold uppercase tracking-[.08em] text-stone-400">
+            <div
+              class={`mb-2 px-3 text-[10.5px] font-semibold uppercase tracking-[.08em] text-stone-400 ${
+                desktopSidebarCollapsed ? "lg:hidden" : ""
+              }`}
+            >
               Principal
             </div>
-            <button class="nav-item active" onClick={closeSidebar}>
-              <span class="nav-ico">
-                <LayoutDashboard size={16} />
-              </span>
-              <a href="/data-core" class="nav-txt">
-                Dashboard
-              </a>
-            </button>
-            <button class="nav-item" onClick={closeSidebar}>
-              <span class="nav-ico">
-                <FileText size={16} />
-              </span>
-              <a href="/data-core/usuarios" class="nav-txt">
-                Usuarios
-              </a>
-            </button>
+
+            {activeProgram.value.menus?.map((item) => {
+              const href = baseUrl.value + item.href;
+              const isActive = activeMenuItemLabel.value === item.label;
+              return (
+                <a
+                  key={item.label}
+                  href={href}
+                  class={`nav-item ${isActive ? "active" : ""}`}
+                  onClick={() => {
+                    if (isMobile) closeSidebar();
+                  }}
+                >
+                  <span class="nav-ico">
+                    <item.icon size={16} />
+                  </span>
+                  <span
+                    class={`nav-txt ${
+                      desktopSidebarCollapsed ? "lg:hidden" : ""
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                </a>
+              );
+            })}
           </nav>
 
           {/* Footer sidebar — datos del usuario */}
-          <div class="border-t border-stone-200 h-14 px-3 bg-stone-50">
-            <div class="flex h-full items-center gap-3 rounded-xl px-3">
+          <div class="h-14 border-t border-stone-200 bg-stone-50 px-3">
+            <div
+              class={`flex h-full items-center gap-3 rounded-xl px-3 ${
+                desktopSidebarCollapsed ? "lg:justify-center lg:px-0" : ""
+              }`}
+            >
               <AvatarComponent name={userName.value} />
-              <div class="min-w-0 flex-1">
+              <div
+                class={`min-w-0 flex-1 ${
+                  desktopSidebarCollapsed ? "lg:hidden" : ""
+                }`}
+              >
                 <p class="truncate text-[13px] font-medium text-stone-900">
                   {userName.value || "Usuario"}
                 </p>
@@ -109,12 +166,20 @@ export function DataCoreLayout({ children }: Props) {
           </div>
         </aside>
 
-        <div class="flex flex-1 flex-col min-w-0">
-          {/* Header principal */}
+        <div class="flex min-w-0 flex-1 flex-col">
           <header class="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-stone-200 bg-white px-3 sm:px-4">
             <button
               class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-600 lg:hidden"
               onClick={openSidebar}
+              aria-label="Abrir menú lateral"
+            >
+              <Menu size={18} />
+            </button>
+
+            <button
+              class="hidden h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 lg:inline-flex"
+              onClick={() => setDesktopSidebarCollapsed((v) => !v)}
+              aria-label="Alternar menú lateral"
             >
               <Menu size={18} />
             </button>
@@ -138,7 +203,6 @@ export function DataCoreLayout({ children }: Props) {
                 <span class="absolute right-[6px] top-[6px] h-1.5 w-1.5 rounded-full bg-red-500 ring-2 ring-white" />
               </button>
 
-              {/* Menú usuario */}
               <div class="relative" ref={userMenuRef}>
                 <button
                   class="flex items-center gap-1 rounded-lg px-2 py-1 text-stone-600 hover:bg-stone-100"
@@ -147,19 +211,21 @@ export function DataCoreLayout({ children }: Props) {
                   <AvatarComponent name={userName.value} />
                   <ChevronDown
                     size={12}
-                    class={`transition-transform duration-200 ${userMenuOpen.value ? "rotate-180" : ""}`}
+                    class={`transition-transform duration-200 ${
+                      userMenuOpen.value ? "rotate-180" : ""
+                    }`}
                   />
                 </button>
 
                 {userMenuOpen.value && (
-                  <div class="absolute right-0 top-full mt-1 min-w-[160px] rounded-xl border border-stone-200 bg-white py-1 shadow-lg z-50">
-                    <button class="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-stone-700 hover:bg-stone-50 rounded-lg">
+                  <div class="absolute right-0 top-full z-50 mt-1 min-w-[160px] rounded-xl border border-stone-200 bg-white py-1 shadow-lg">
+                    <button class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[13px] text-stone-700 hover:bg-stone-50">
                       <User size={14} />
                       Mi perfil
                     </button>
                     <a
                       href="/base"
-                      class="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-stone-700 hover:bg-stone-50 rounded-lg"
+                      class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[13px] text-stone-700 hover:bg-stone-50"
                     >
                       <LayoutGrid size={14} />
                       Programas
@@ -167,7 +233,7 @@ export function DataCoreLayout({ children }: Props) {
                     <div class="my-1 h-px bg-stone-200" />
                     <button
                       onClick={singOut}
-                      class="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-red-600 hover:bg-red-50 rounded-lg"
+                      class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[13px] text-red-600 hover:bg-red-50"
                     >
                       <LogOut size={14} />
                       Cerrar sesión

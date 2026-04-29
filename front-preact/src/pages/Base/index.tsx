@@ -1,107 +1,7 @@
 import { LogOut, ExternalLink, Lock } from "lucide-preact";
 import { useAuth } from "../Auth/hooks";
 import { authUser } from "../Auth/stores";
-import { ComponentChildren } from "preact";
-
-interface ProgramConfig {
-  label: string;
-  description: string;
-  version: string;
-  accentColor: string;
-  bgFrom: string;
-  bgTo: string;
-  badgeBg: string;
-  badgeText: string;
-  icon: ComponentChildren;
-  url: string;
-  available: boolean;
-}
-
-const PROGRAMS: Record<string, ProgramConfig> = {
-  "data-core": {
-    label: "DataCore",
-    description:
-      "Analítica estadística y big data para empresas multidepartamentales",
-    version: "v0.1",
-    accentColor: "#cc8b3c",
-    bgFrom: "#fef7ed",
-    bgTo: "#fef3e2",
-    badgeBg: "rgba(251,191,36,0.15)",
-    badgeText: "#92400e",
-    url: "/data-core",
-    available: true,
-    icon: (
-      <svg
-        width="32"
-        height="32"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#cc8b3c"
-        stroke-width="1.8"
-      >
-        <rect x="3" y="3" width="7" height="7" rx="1.5" />
-        <rect x="14" y="3" width="7" height="7" rx="1.5" />
-        <rect x="3" y="14" width="7" height="7" rx="1.5" />
-        <rect x="14" y="14" width="7" height="7" rx="1.5" />
-      </svg>
-    ),
-  },
-  "help-core": {
-    label: "HelpCore",
-    description:
-      "Gestión de tickets de soporte para equipos multidepartamentales",
-    version: "v0.1",
-    accentColor: "#2563eb",
-    bgFrom: "#eef4ff",
-    bgTo: "#e0ecff",
-    badgeBg: "rgba(59,130,246,0.12)",
-    badgeText: "#1e40af",
-    url: "/help-core",
-    available: false,
-    icon: (
-      <svg
-        width="32"
-        height="32"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#2563eb"
-        stroke-width="1.8"
-      >
-        <path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
-        <path
-          d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"
-          stroke-linecap="round"
-        />
-      </svg>
-    ),
-  },
-  admin: {
-    label: "AdminCore",
-    description:
-      "Administración de usuarios, roles, permisos y programas de la suite",
-    version: "v0.1",
-    accentColor: "#7c3aed",
-    bgFrom: "#f5f3ff",
-    bgTo: "#ede9fe",
-    badgeBg: "rgba(124,58,237,0.12)",
-    badgeText: "#5b21b6",
-    url: "/admin",
-    available: true,
-    icon: (
-      <svg
-        width="32"
-        height="32"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#7c3aed"
-        stroke-width="1.8"
-      >
-        <circle cx="12" cy="8" r="4" />
-        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke-linecap="round" />
-      </svg>
-    ),
-  },
-};
+import { PROGRAMS, ProgramConfig } from "../../tools/apps";
 
 function ProgramCard({ config }: { config: ProgramConfig }) {
   const button = config.available ? (
@@ -143,7 +43,7 @@ function ProgramCard({ config }: { config: ProgramConfig }) {
             class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/80 shadow-sm"
             style={{ border: `1px solid ${config.accentColor}22` }}
           >
-            {config.icon}
+            <config.icon size={28} strokeWidth={1.5} class="text-stone-700" />
           </div>
           <div class="flex items-center gap-2">
             <span
