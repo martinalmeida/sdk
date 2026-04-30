@@ -87,7 +87,7 @@ export default function Base() {
   const activeSlugs = user.programs
     .filter((p) => p.is_active)
     .map((p) => p.slug);
-  const allSlugs = isSuperAdmin ? [...activeSlugs, "admin"] : activeSlugs;
+  const allSlugs = isSuperAdmin ? [...activeSlugs, "admin-core"] : activeSlugs;
   const programs = allSlugs
     .map((slug) => ({ slug, config: PROGRAMS[slug] }))
     .filter(

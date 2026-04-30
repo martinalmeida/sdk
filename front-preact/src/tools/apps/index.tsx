@@ -89,7 +89,7 @@ export const PROGRAMS: Record<string, ProgramConfig> = {
       },
     ],
   },
-  admin: {
+  "admin-core": {
     label: "AdminCore",
     description:
       "Administración de usuarios, roles, permisos y programas de la suite",
@@ -99,7 +99,7 @@ export const PROGRAMS: Record<string, ProgramConfig> = {
     bgTo: "#ede9fe",
     badgeBg: "rgba(124,58,237,0.12)",
     badgeText: "#5b21b6",
-    url: "/admin",
+    url: "/admin-core",
     available: true,
     icon: ShieldCheck,
     menus: [

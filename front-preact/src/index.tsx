@@ -5,13 +5,15 @@ import {
   hydrate,
   prerender as ssr,
 } from "preact-iso";
-import RoutesDataCore from "./pages/DataCore/Routes";
-import { NotFound } from "./pages/_404";
 import { isAuthenticated } from "./pages/Auth/stores";
 import "./style.css";
 import { ComponentChildren } from "preact";
+
 import AuthPage from "./pages/Auth/index";
 import BasePage from "./pages/Base/index";
+import RoutesAdminCore from "./pages/AdminCore/Routes";
+import RoutesDataCore from "./pages/DataCore/Routes";
+import { NotFound } from "./pages/_404";
 
 function ProtectedRoute({
   component: Component,
@@ -51,6 +53,10 @@ export function App() {
           <Route
             path="/base"
             component={() => <ProtectedRoute component={BasePage} />}
+          />
+          <Route
+            path="/admin-core/:rest*"
+            component={() => <ProtectedRoute component={RoutesAdminCore} />}
           />
           <Route
             path="/data-core/:rest*"
