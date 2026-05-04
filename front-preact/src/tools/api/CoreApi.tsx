@@ -269,6 +269,7 @@ export const CoreApi = {
     options: {
       token?: string | null;
       headers?: Record<string, string>;
+      body?: unknown;
     } = {},
   ): Promise<ApiResponse<T>> {
     return request<T>(endpoint, "DELETE", options);

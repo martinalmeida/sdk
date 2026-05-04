@@ -83,17 +83,11 @@ export default function Base() {
     return null;
   }
 
-  const isSuperAdmin = user.rol === "Super Administrador";
-  const activeSlugs = user.programs
+  // Obtener los programas activos del usuario y sus configuraciones visuales
+  const programs = user.programs
     .filter((p) => p.is_active)
-    .map((p) => p.slug);
-  const allSlugs = isSuperAdmin ? [...activeSlugs, "admin-core"] : activeSlugs;
-  const programs = allSlugs
-    .map((slug) => ({ slug, config: PROGRAMS[slug] }))
-    .filter(
-      (p): p is { slug: string; config: ProgramConfig } =>
-        p.config !== undefined,
-    );
+    .map((program) => PROGRAMS[program.slug])
+    .filter((config): config is ProgramConfig => !!config);
 
   const gridCols =
     programs.length === 1
@@ -129,7 +123,7 @@ export default function Base() {
           <img src="/logo.png" alt="GA Suite" class="h-8 w-8 object-contain" />
           <div>
             <p class="text-[14px] font-bold tracking-tight text-stone-900">
-              GoAlrCore Suite
+              GoAltCore Suite
             </p>
             <p class="text-[10.5px] text-stone-400 font-mono">
               Plataforma empresarial
@@ -175,8 +169,8 @@ export default function Base() {
           class="w-full grid gap-4"
           style={{ gridTemplateColumns: gridCols, maxWidth }}
         >
-          {programs.map(({ slug, config }) => (
-            <ProgramCard key={slug} config={config} />
+          {programs.map((config, idx) => (
+            <ProgramCard key={idx} config={config} />
           ))}
         </div>
       </main>

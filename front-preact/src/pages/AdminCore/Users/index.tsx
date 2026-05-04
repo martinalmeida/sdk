@@ -1,65 +1,80 @@
-import { useState, useEffect } from "preact/hooks";
+import { useEffect } from "preact/hooks";
+import { Pencil, Trash2 } from "lucide-preact";
 import DataTableComponent from "../Core/components/DatatableComponent";
 import LoaderComponent from "../Core/components/LoaderComponent";
-import { Pencil, MoreVertical } from "lucide-preact";
 import { setPageTitle } from "../Core/hooks";
+import { useUsers } from "./hooks";
 
 const columns = [
-  { key: "fecha", label: "Fecha" },
-  { key: "cuenta", label: "Cta." },
-  { key: "descripcion", label: "Descripción" },
-  { key: "debito", label: "Débito", align: "right" as const },
-  { key: "estado", label: "Estado" },
-  { key: "acciones", label: "Acc." },
+  { key: "name", label: "Nombre" },
+  { key: "email", label: "Email" },
+  { key: "position", label: "Cargo" },
+  { key: "status", label: "Estado" },
+  { key: "actions", label: "Acciones", align: "center" as const },
 ];
 
-const data = [
-  {
-    fecha: "01/04/25",
-    cuenta: "1105",
-    descripcion: "Caja general — apertura",
-    debito: "10,000.00",
-    estado: (
-      <span class="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700">
-        Aprobado
-      </span>
-    ),
-    acciones: (
-      <div class="flex gap-2">
-        <a
-          href={`/admin-core/usuarios/editar/${22}`}
-          class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200"
-        >
-          <Pencil size={12} />
-        </a>
-        <a class="rounded-md bg-stone-100 px-2 py-1 text-xs hover:bg-stone-200">
-          <MoreVertical size={12} />
-        </a>
-      </div>
-    ),
-  },
-];
-
-export default function Users() {
-  const [loading, setLoading] = useState(true);
+export default function UsersPage() {
+  const { users, loading, deleteUser } = useUsers();
 
   useEffect(() => {
     setPageTitle("Usuarios", "Gestión de usuarios del sistema");
   }, []);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 2500);
-    return () => clearTimeout(timer);
-  }, []);
+  if (loading) {
+    return <LoaderComponent message="Cargando usuarios..." />;
+  }
 
-  if (loading) return <LoaderComponent message="Cargando usuarios..." />;
+  //Transformar usuarios al formato que espera DataTable
+  const data = users.map((user) => ({
+    name: user.name,
+    email: user.email,
+    position: user.position?.name || "—",
+    status: (
+      <span
+        class={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${
+          user.status === "active"
+            ? "bg-green-100 text-green-700"
+            : user.status === "inactive"
+              ? "bg-yellow-100 text-yellow-700"
+              : "bg-red-100 text-red-700"
+        }`}
+      >
+        {user.status === "active"
+          ? "Activo"
+          : user.status === "inactive"
+            ? "Inactivo"
+            : "Suspendido"}
+      </span>
+    ),
+    actions: (
+      <div class="flex justify-center gap-2">
+        <button
+          onClick={() => {
+            //TODO: abrir modal de edición
+            console.log("Editar", user.id);
+          }}
+          class="rounded-md bg-stone-100 p-1.5 text-stone-600 hover:bg-stone-200"
+        >
+          <Pencil size={14} />
+        </button>
+        <button
+          onClick={() => {
+            if (confirm("¿Eliminar este usuario?")) deleteUser(user.id);
+          }}
+          class="rounded-md bg-stone-100 p-1.5 text-red-600 hover:bg-red-100"
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
+    ),
+  }));
 
   return (
     <DataTableComponent
       columns={columns}
       data={data}
+      searchKeys={["name", "email"]}
       pageSize={10}
-      searchKeys={["fecha", "cuenta", "descripcion"]}
     />
   );
 }
