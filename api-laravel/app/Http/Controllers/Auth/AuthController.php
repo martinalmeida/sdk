@@ -1,10 +1,12 @@
 <?php
-namespace App\Http\Controllers;
 
-use App\Http\Requests\LoginRequest;
-use App\Models\Role;
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
-use App\Services\SessionService;
+use App\Models\Role;
+use App\Services\Auth\SessionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

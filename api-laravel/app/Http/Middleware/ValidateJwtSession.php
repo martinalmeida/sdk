@@ -1,7 +1,8 @@
 <?php
+
 namespace App\Http\Middleware;
 
-use App\Services\SessionService;
+use App\Services\Auth\SessionService;
 use Closure;
 use Illuminate\Http\Request;
 

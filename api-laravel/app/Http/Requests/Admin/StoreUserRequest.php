@@ -1,5 +1,6 @@
 <?php
-namespace App\Http\Requests;
+
+namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -18,8 +19,6 @@ class StoreUserRequest extends FormRequest
             'password' => 'required|string|min:6|confirmed',
             'position_id' => 'nullable|exists:positions,id',
             'status' => 'in:active,inactive,suspended',
-            'program_id' => 'required|exists:suite_programs,id',
-            'role_id' => 'required|exists:roles,id',
         ];
     }
 }

@@ -1,5 +1,6 @@
 <?php
-namespace App\Services;
+
+namespace App\Services\DataCore;
 
 use App\Models\Permission;
 use App\Models\SuiteProgram;

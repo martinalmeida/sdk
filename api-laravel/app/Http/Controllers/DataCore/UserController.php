@@ -1,10 +1,12 @@
 <?php
-namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\UpdateUserRequest;
+namespace App\Http\Controllers\DataCore;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\DataCore\StoreUserRequest;
+use App\Http\Requests\DataCore\UpdateUserRequest;
 use App\Models\User;
-use App\Services\UserService;
+use App\Services\DataCore\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
