@@ -22,10 +22,27 @@ return new class extends Migration {
             $table->index(['user_id', 'is_active']);
             $table->index('expires_at');
         });
+
+        Schema::create('groups', function (Blueprint $table) {
+            $table->id();
+            $table->string('name', 100)->unique();
+            $table->string('description')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('group_user', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('group_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->timestamps();
+            $table->unique(['group_id', 'user_id']);
+        });
     }
 
     public function down(): void
     {
         Schema::dropIfExists('user_sessions');
+        Schema::dropIfExists('group_user');
+        Schema::dropIfExists('groups');
     }
 };

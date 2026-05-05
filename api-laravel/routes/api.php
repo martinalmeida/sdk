@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DataCore\UserController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\GroupController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\ProgramController;
@@ -17,32 +18,6 @@ Route::middleware(['auth:api', 'session.valid'])->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('logout-all', [AuthController::class, 'logoutAll']);
     Route::get('me', [AuthController::class, 'me']);
-
-    // ==================== DataCore ====================
-    Route::middleware('program.access:data-core')
-        ->prefix('data-core')
-        ->group(function () {
-            Route::middleware('permission:users.read,data-core')
-                ->get('users', [UserController::class, 'index']);
-
-            Route::middleware('permission:users.create,data-core')
-                ->post('users', [UserController::class, 'store']);
-
-            Route::middleware('permission:users.read,data-core')
-                ->get('users/{user}', [UserController::class, 'show']);
-
-            Route::middleware('permission:users.update,data-core')
-                ->put('users/{user}', [UserController::class, 'update']);
-
-            Route::middleware('permission:users.delete,data-core')
-                ->delete('users/{user}', [UserController::class, 'destroy']);
-
-            Route::middleware('permission:users.update,data-core')
-                ->post('users/{user}/grant-permission', [UserController::class, 'grantPermission']);
-
-            Route::middleware('permission:users.update,data-core')
-                ->delete('users/{user}/revoke-permission', [UserController::class, 'revokePermission']);
-        });
 
     // ==================== AdminCore ====================
     Route::middleware('program.access:admin-core')
@@ -70,6 +45,16 @@ Route::middleware(['auth:api', 'session.valid'])->group(function () {
 
             Route::middleware('permission:admin.users.update,admin-core')
                 ->delete('users/{user}/remove-program/{programId}', [AdminUserController::class, 'removeProgram']);
+
+            // Grupos (roles globales)
+            Route::middleware('permission:admin.groups.read,admin-core')
+                ->apiResource('groups', GroupController::class)->except(['create', 'edit']);
+
+            Route::middleware('permission:admin.groups.update,admin-core')
+                ->post('groups/{group}/assign-users', [GroupController::class, 'assignUsers']);
+
+            Route::middleware('permission:admin.groups.update,admin-core')
+                ->delete('groups/{group}/remove-users', [GroupController::class, 'removeUsers']);
 
             // Roles (por programa)
             Route::middleware('permission:admin.roles.read,admin-core')
@@ -128,5 +113,31 @@ Route::middleware(['auth:api', 'session.valid'])->group(function () {
 
             Route::middleware('permission:admin.positions.delete,admin-core')
                 ->delete('positions/{position}', [PositionController::class, 'destroy']);
+        });
+
+    // ==================== DataCore ====================
+    Route::middleware('program.access:data-core')
+        ->prefix('data-core')
+        ->group(function () {
+            Route::middleware('permission:users.read,data-core')
+                ->get('users', [UserController::class, 'index']);
+
+            Route::middleware('permission:users.create,data-core')
+                ->post('users', [UserController::class, 'store']);
+
+            Route::middleware('permission:users.read,data-core')
+                ->get('users/{user}', [UserController::class, 'show']);
+
+            Route::middleware('permission:users.update,data-core')
+                ->put('users/{user}', [UserController::class, 'update']);
+
+            Route::middleware('permission:users.delete,data-core')
+                ->delete('users/{user}', [UserController::class, 'destroy']);
+
+            Route::middleware('permission:users.update,data-core')
+                ->post('users/{user}/grant-permission', [UserController::class, 'grantPermission']);
+
+            Route::middleware('permission:users.update,data-core')
+                ->delete('users/{user}/revoke-permission', [UserController::class, 'revokePermission']);
         });
 });
