@@ -10,6 +10,7 @@ import {
 } from "lucide-preact";
 import NoticeComponent from "../Core/components/NoticeComponent";
 import StatsComponent from "../Core/components/StatsComponent";
+import LoaderComponent from "../Core/components/LoaderComponent";
 import { useUsers } from "../Users/hooks";
 import { useRoles } from "../Roles/hooks";
 import { usePrograms } from "../Programs/hooks";
@@ -17,15 +18,26 @@ import { usePermissions } from "../Permissions/hooks";
 import { useGroups } from "../Groups/hooks";
 
 export default function Home() {
-  const { users } = useUsers();
-  const { roles } = useRoles();
-  const { programs } = usePrograms();
-  const { permissions } = usePermissions();
-  const { groups } = useGroups();
+  const { users, loading: usersLoading } = useUsers();
+  const { roles, loading: rolesLoading } = useRoles();
+  const { programs, loading: programsLoading } = usePrograms();
+  const { permissions, loading: permissionsLoading } = usePermissions();
+  const { groups, loading: groupsLoading } = useGroups();
+
+  const isLoading =
+    usersLoading ||
+    rolesLoading ||
+    programsLoading ||
+    permissionsLoading ||
+    groupsLoading;
 
   useEffect(() => {
     setPageTitle("Dashboard", "Panel de administración general");
   }, []);
+
+  if (isLoading) {
+    return <LoaderComponent message="Cargando estadísticas del sistema..." />;
+  }
 
   const stats = [
     {
@@ -99,7 +111,7 @@ export default function Home() {
     },
     {
       title: "Permisos",
-      description: "Consulta la lista de permisos disponibles (solo lectura).",
+      description: "Gestiona los permisos del sistema (CRUD completo).",
       icon: Key,
       href: "/admin-core/permisos",
       color: "text-amber-600",
@@ -165,7 +177,7 @@ export default function Home() {
             class="group rounded-xl border border-stone-200 bg-white p-4 transition-all hover:shadow-md hover:-translate-y-0.5"
           >
             <div
-              class={`mb-3 inline-flex rounded-lg ${mod.bg} p-2.5 text-${mod.color}`}
+              class={`mb-3 inline-flex rounded-lg ${mod.bg} p-2.5 ${mod.color}`}
             >
               <mod.icon size={22} />
             </div>

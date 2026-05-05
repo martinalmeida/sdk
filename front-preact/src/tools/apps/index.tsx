@@ -6,9 +6,8 @@ import {
   LayoutDashboard,
   FileText,
   Users,
-  BookUser,
-  ShieldCogCorner,
-  KeyRound,
+  UserPlus,
+  Key,
   Settings,
 } from "lucide-preact";
 import type { LucideProps } from "lucide-preact";
@@ -118,24 +117,24 @@ export const PROGRAMS: Record<string, ProgramConfig> = {
         icon: Users,
       },
       {
-        label: "Grupos",
-        href: "/grupos",
-        icon: BookUser,
-      },
-      {
         label: "Roles",
         href: "/roles",
-        icon: ShieldCogCorner,
-      },
-      {
-        label: "Permisos",
-        href: "/permisos",
-        icon: KeyRound,
+        icon: ShieldCheck,
       },
       {
         label: "Programas",
         href: "/programas",
         icon: Settings,
+      },
+      {
+        label: "Permisos",
+        href: "/permisos",
+        icon: Key,
+      },
+      {
+        label: "Grupos",
+        href: "/grupos",
+        icon: UserPlus,
       },
     ],
   },

@@ -4,7 +4,7 @@ type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 export interface ApiResponse<T = unknown> {
   data: T | null;
   error: string | null;
-  errors: Record<string, string[]> | null; //errores de validación Laravel
+  errors: Record<string, string[]> | null;
   status: number;
   ok: boolean;
 }
@@ -13,6 +13,8 @@ export interface ApiConfig {
   baseUrl?: string;
   timeout?: number;
   headers?: Record<string, string>;
+  unauthorizedRedirectUrl?: string;
+  onUnauthorized?: (response: ApiResponse<never>) => void;
 }
 
 export class ApiError extends Error {
@@ -26,26 +28,38 @@ export class ApiError extends Error {
   }
 }
 
+type RequestInterceptor = (
+  config: RequestInit & { url: string },
+) => RequestInit & { url: string };
+
+type ResponseInterceptor = <T>(response: ApiResponse<T>) => ApiResponse<T>;
+
 //Configuración global
-const defaultConfig: Required<ApiConfig> = {
+const defaultConfig: Required<
+  Pick<ApiConfig, "baseUrl" | "timeout" | "headers">
+> & {
+  unauthorizedRedirectUrl: string;
+  onUnauthorized?: (response: ApiResponse<never>) => void;
+} = {
   baseUrl: import.meta.env.VITE_API_URL ?? "http://localhost:8000/api",
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
+  unauthorizedRedirectUrl: "/",
+  onUnauthorized: undefined,
 };
 
 //Interceptores
-type RequestInterceptor = (
-  config: RequestInit & { url: string },
-) => RequestInit & { url: string };
-type ResponseInterceptor = <T>(response: ApiResponse<T>) => ApiResponse<T>;
-
 const requestInterceptors: RequestInterceptor[] = [];
 const responseInterceptors: ResponseInterceptor[] = [];
 
 //Helpers internos
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function buildHeaders(
   extra: Record<string, string> = {},
   token?: string | null,
@@ -55,28 +69,88 @@ function buildHeaders(
   return headers;
 }
 
-function parseError(
-  json: Record<string, unknown>,
-  status: number,
-): ApiResponse<never> {
+function normalizeValidationErrors(
+  errors: unknown,
+): Record<string, string[]> | null {
+  if (!isRecord(errors)) return null;
+
+  const normalized: Record<string, string[]> = {};
+
+  for (const [key, value] of Object.entries(errors)) {
+    if (Array.isArray(value)) {
+      const messages = value.filter(
+        (item): item is string => typeof item === "string",
+      );
+      if (messages.length > 0) normalized[key] = messages;
+    } else if (typeof value === "string") {
+      normalized[key] = [value];
+    }
+  }
+
+  return Object.keys(normalized).length > 0 ? normalized : null;
+}
+
+function parseError(payload: unknown, status: number): ApiResponse<never> {
   //Error de validación Laravel (422)
-  if (status === 422 && json?.errors) {
-    const validationErrors = json.errors as Record<string, string[]>;
-    const firstMessage =
-      Object.values(validationErrors)[0]?.[0] ?? "Error de validación";
+  if (status === 422 && isRecord(payload) && payload.errors) {
+    const validationErrors = normalizeValidationErrors(payload.errors);
+    const firstMessage = validationErrors
+      ? Object.values(validationErrors)[0]?.[0]
+      : undefined;
+
     return {
       data: null,
-      error: firstMessage,
+      error: firstMessage ?? "Error de validación",
       errors: validationErrors,
       status,
       ok: false,
     };
   }
 
-  const message =
-    (json?.error as string) ?? (json?.message as string) ?? "Error desconocido";
+  if (isRecord(payload)) {
+    const message =
+      (typeof payload.error === "string" && payload.error) ||
+      (typeof payload.message === "string" && payload.message) ||
+      "Error desconocido";
 
-  return { data: null, error: message, errors: null, status, ok: false };
+    return {
+      data: null,
+      error: message,
+      errors: null,
+      status,
+      ok: false,
+    };
+  }
+
+  return {
+    data: null,
+    error: "Error desconocido",
+    errors: null,
+    status,
+    ok: false,
+  };
+}
+
+async function readResponseBody(res: Response): Promise<unknown> {
+  const text = await res.text();
+
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
+function handleUnauthorized(response: ApiResponse<never>) {
+  if (defaultConfig.onUnauthorized) {
+    defaultConfig.onUnauthorized(response);
+  }
+
+  if (typeof window !== "undefined" && defaultConfig.unauthorizedRedirectUrl) {
+    window.location.replace(defaultConfig.unauthorizedRedirectUrl);
+  }
 }
 
 //Función principal
@@ -88,9 +162,16 @@ async function request<T>(
     token?: string | null;
     headers?: Record<string, string>;
     params?: Record<string, string | number | boolean>;
+    redirectOnUnauthorized?: boolean;
   } = {},
 ): Promise<ApiResponse<T>> {
-  const { body, token, headers = {}, params } = options;
+  const {
+    body,
+    token,
+    headers = {},
+    params,
+    redirectOnUnauthorized = true,
+  } = options;
 
   //Query params
   let url = `${defaultConfig.baseUrl}${endpoint}`;
@@ -113,7 +194,6 @@ async function request<T>(
     requestConfig = interceptor(requestConfig);
   }
 
-  //Timeout con AbortController
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), defaultConfig.timeout);
 
@@ -136,33 +216,70 @@ async function request<T>(
         status: 204,
         ok: true,
       };
-      for (const interceptor of responseInterceptors)
+
+      for (const interceptor of responseInterceptors) {
         response = interceptor(response) as ApiResponse<T>;
+      }
+
       return response;
     }
 
-    const json = await res.json();
+    const payload = await readResponseBody(res);
+
+    //No autenticado
+    if (res.status === 401) {
+      const response: ApiResponse<T> = {
+        data: null,
+        error:
+          (isRecord(payload) &&
+            typeof payload.error === "string" &&
+            payload.error) ||
+          (isRecord(payload) &&
+            typeof payload.message === "string" &&
+            payload.message) ||
+          "No autenticado",
+        errors: null,
+        status: 401,
+        ok: false,
+      };
+
+      for (const interceptor of responseInterceptors) {
+        const next = interceptor(response) as ApiResponse<T>;
+        response.error = next.error;
+        response.errors = next.errors;
+        response.data = next.data;
+        response.status = next.status;
+        response.ok = next.ok;
+      }
+
+      if (redirectOnUnauthorized) {
+        handleUnauthorized(response as ApiResponse<never>);
+      }
+
+      return response;
+    }
 
     if (!res.ok) {
-      let response = parseError(
-        json as Record<string, unknown>,
-        res.status,
-      ) as ApiResponse<T>;
-      for (const interceptor of responseInterceptors)
+      let response = parseError(payload, res.status) as ApiResponse<T>;
+
+      for (const interceptor of responseInterceptors) {
         response = interceptor(response) as ApiResponse<T>;
+      }
+
       return response;
     }
 
     let response: ApiResponse<T> = {
-      data: json as T,
+      data: payload as T,
       error: null,
       errors: null,
       status: res.status,
       ok: true,
     };
 
-    for (const interceptor of responseInterceptors)
+    for (const interceptor of responseInterceptors) {
       response = interceptor(response) as ApiResponse<T>;
+    }
 
     return response;
   } catch (err) {
@@ -194,8 +311,15 @@ export const CoreApi = {
   configure(config: ApiConfig) {
     if (config.baseUrl) defaultConfig.baseUrl = config.baseUrl;
     if (config.timeout) defaultConfig.timeout = config.timeout;
-    if (config.headers)
+    if (config.headers) {
       defaultConfig.headers = { ...defaultConfig.headers, ...config.headers };
+    }
+    if (config.unauthorizedRedirectUrl !== undefined) {
+      defaultConfig.unauthorizedRedirectUrl = config.unauthorizedRedirectUrl;
+    }
+    if (config.onUnauthorized !== undefined) {
+      defaultConfig.onUnauthorized = config.onUnauthorized;
+    }
   },
 
   setBaseUrl(url: string) {
@@ -208,6 +332,14 @@ export const CoreApi = {
 
   removeHeader(key: string) {
     delete defaultConfig.headers[key];
+  },
+
+  setUnauthorizedRedirectUrl(url: string) {
+    defaultConfig.unauthorizedRedirectUrl = url;
+  },
+
+  setUnauthorizedHandler(handler?: (response: ApiResponse<never>) => void) {
+    defaultConfig.onUnauthorized = handler;
   },
 
   //Interceptores
@@ -226,6 +358,7 @@ export const CoreApi = {
       token?: string | null;
       params?: Record<string, string | number | boolean>;
       headers?: Record<string, string>;
+      redirectOnUnauthorized?: boolean;
     } = {},
   ): Promise<ApiResponse<T>> {
     return request<T>(endpoint, "GET", options);
@@ -237,6 +370,7 @@ export const CoreApi = {
     options: {
       token?: string | null;
       headers?: Record<string, string>;
+      redirectOnUnauthorized?: boolean;
     } = {},
   ): Promise<ApiResponse<T>> {
     return request<T>(endpoint, "POST", { body, ...options });
@@ -248,6 +382,7 @@ export const CoreApi = {
     options: {
       token?: string | null;
       headers?: Record<string, string>;
+      redirectOnUnauthorized?: boolean;
     } = {},
   ): Promise<ApiResponse<T>> {
     return request<T>(endpoint, "PUT", { body, ...options });
@@ -259,6 +394,7 @@ export const CoreApi = {
     options: {
       token?: string | null;
       headers?: Record<string, string>;
+      redirectOnUnauthorized?: boolean;
     } = {},
   ): Promise<ApiResponse<T>> {
     return request<T>(endpoint, "PATCH", { body, ...options });
@@ -270,6 +406,7 @@ export const CoreApi = {
       token?: string | null;
       headers?: Record<string, string>;
       body?: unknown;
+      redirectOnUnauthorized?: boolean;
     } = {},
   ): Promise<ApiResponse<T>> {
     return request<T>(endpoint, "DELETE", options);
