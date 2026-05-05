@@ -1,9 +1,10 @@
 import { useEffect } from "preact/hooks";
-import { Pencil, Trash2 } from "lucide-preact";
+import { Pencil, Trash2, Plus } from "lucide-preact";
 import DataTableComponent from "../Core/components/DatatableComponent";
 import LoaderComponent from "../Core/components/LoaderComponent";
 import { setPageTitle } from "../Core/hooks";
-import { useUsers } from "./hooks";
+import { useUsers, useUserForm } from "./hooks";
+import UserFormComponent from "./components/UserFormComponent";
 
 const columns = [
   { key: "name", label: "Nombre" },
@@ -14,7 +15,8 @@ const columns = [
 ];
 
 export default function UsersPage() {
-  const { users, loading, deleteUser } = useUsers();
+  const { users, loading, deleteUser, refreshUsers } = useUsers();
+  const form = useUserForm(refreshUsers);
 
   useEffect(() => {
     setPageTitle("Usuarios", "Gestión de usuarios del sistema");
@@ -24,7 +26,6 @@ export default function UsersPage() {
     return <LoaderComponent message="Cargando usuarios..." />;
   }
 
-  //Transformar usuarios al formato que espera DataTable
   const data = users.map((user) => ({
     name: user.name,
     email: user.email,
@@ -49,10 +50,7 @@ export default function UsersPage() {
     actions: (
       <div class="flex justify-center gap-2">
         <button
-          onClick={() => {
-            //TODO: abrir modal de edición
-            console.log("Editar", user.id);
-          }}
+          onClick={() => form.openEdit(user)}
           class="rounded-md bg-stone-100 p-1.5 text-stone-600 hover:bg-stone-200"
         >
           <Pencil size={14} />
@@ -70,11 +68,48 @@ export default function UsersPage() {
   }));
 
   return (
-    <DataTableComponent
-      columns={columns}
-      data={data}
-      searchKeys={["name", "email"]}
-      pageSize={10}
-    />
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-stone-900">Usuarios</h1>
+        <button
+          onClick={() => form.openCreate()}
+          class="inline-flex items-center gap-2 rounded-lg bg-[#7c3aed] px-4 py-2 text-sm text-white hover:bg-[#6d28d9]"
+        >
+          <Plus size={16} />
+          Nuevo usuario
+        </button>
+      </div>
+
+      <DataTableComponent
+        columns={columns}
+        data={data}
+        searchKeys={["name", "email"]}
+        pageSize={10}
+      />
+
+      <UserFormComponent
+        open={form.open}
+        onClose={() => form.setOpen(false)}
+        onSubmit={form.handleSubmit}
+        loading={form.loading}
+        editingUser={form.editingUser}
+        name={form.name}
+        setName={form.setName}
+        email={form.email}
+        setEmail={form.setEmail}
+        password={form.password}
+        setPassword={form.setPassword}
+        passwordConfirmation={form.passwordConfirmation}
+        setPasswordConfirmation={form.setPasswordConfirmation}
+        positionId={form.positionId}
+        setPositionId={form.setPositionId}
+        status={form.status}
+        setStatus={form.setStatus}
+        assignedPrograms={form.assignedPrograms}
+        addProgram={form.addProgram}
+        updateAssignedProgram={form.updateAssignedProgram}
+        removeProgram={form.removeProgram}
+      />
+    </div>
   );
 }

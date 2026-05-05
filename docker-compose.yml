@@ -1,5 +1,4 @@
 services:
-  # Base de Datos MariaDB
   db:
     image: mariadb:10.11
     container_name: mysql_db
@@ -13,14 +12,17 @@ services:
       - "3307:3306"
     volumes:
       - db_data:/var/lib/mysql
+    deploy:
+      resources:
+        limits:
+          memory: 512m
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
       timeout: 3s
       retries: 20
       start_period: 30s
-    
-  # API Laravel
+
   api:
     build:
       context: ./api-laravel
@@ -32,6 +34,7 @@ services:
         condition: service_healthy
     ports:
       - "8000:8000"
+    # Las env en runtime sobreescriben las del Dockerfile
     environment:
       DB_CONNECTION: mysql
       DB_HOST: db
@@ -39,8 +42,11 @@ services:
       DB_DATABASE: martin
       DB_USERNAME: martin
       DB_PASSWORD: root
-    
-  # Frontend React
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
   front:
     build:
       context: ./front-preact
@@ -54,7 +60,12 @@ services:
       - api
     volumes:
       - ./front-preact:/app
-      - /app/node_modules
+      - node_modules_cache:/app/node_modules # volumen nombrado, no anónimo
+    deploy:
+      resources:
+        limits:
+          memory: 512m
 
 volumes:
   db_data:
+  node_modules_cache: # nombrado para que Docker lo reutilice entre reinicios

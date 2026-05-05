@@ -59,6 +59,8 @@ export function useUsers() {
     return res;
   };
 
+  const refreshUsers = () => loadUsers();
+
   useEffect(() => {
     Promise.all([loadUsers(), loadCatalogs()]).finally(() => setLoading(false));
   }, []);
@@ -68,6 +70,7 @@ export function useUsers() {
     loading: loading || usersLoading.value,
     error: usersError.value,
     deleteUser,
+    refreshUsers,
     programs: programs.value,
     roles: roles.value,
     positions: positions.value,

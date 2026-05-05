@@ -5,12 +5,10 @@ import "./style.css";
 
 import Home from "./Home/index";
 import Users from "./Users/index";
-import EditUser from "./Users/edit";
 
 const routes: RouteDefinition[] = [
   { path: "/admin-core", component: Home },
   { path: "/admin-core/usuarios", component: Users },
-  { path: "/admin-core/usuarios/editar/:id", component: EditUser },
 ];
 
 export default function RoutesAdminCore() {
