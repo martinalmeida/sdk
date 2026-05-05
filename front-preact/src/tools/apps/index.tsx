@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   FileText,
   Users,
+  BookUser,
   ShieldCogCorner,
   KeyRound,
   Settings,
@@ -115,6 +116,11 @@ export const PROGRAMS: Record<string, ProgramConfig> = {
         label: "Usuarios",
         href: "/usuarios",
         icon: Users,
+      },
+      {
+        label: "Grupos",
+        href: "/grupos",
+        icon: BookUser,
       },
       {
         label: "Roles",

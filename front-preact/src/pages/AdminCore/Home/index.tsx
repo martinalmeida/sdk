@@ -1,29 +1,36 @@
 import { useEffect } from "preact/hooks";
 import { setPageTitle } from "../Core/hooks/useLayout";
-import { Users, ShieldCheck, Settings, Key, ArrowRight } from "lucide-preact";
+import {
+  Users,
+  ShieldCheck,
+  Settings,
+  Key,
+  UserPlus,
+  ArrowRight,
+} from "lucide-preact";
 import NoticeComponent from "../Core/components/NoticeComponent";
 import StatsComponent from "../Core/components/StatsComponent";
 import { useUsers } from "../Users/hooks";
 import { useRoles } from "../Roles/hooks";
 import { usePrograms } from "../Programs/hooks";
 import { usePermissions } from "../Permissions/hooks";
+import { useGroups } from "../Groups/hooks";
 
 export default function Home() {
   const { users } = useUsers();
   const { roles } = useRoles();
   const { programs } = usePrograms();
   const { permissions } = usePermissions();
+  const { groups } = useGroups();
 
   useEffect(() => {
     setPageTitle("Dashboard", "Panel de administración general");
   }, []);
 
-  //Estadísticas dinámicas
   const stats = [
     {
       label: "Usuarios activos",
       value: users.filter((u) => u.status === "active").length.toString(),
-      href: "/admin-core/usuarios",
       valueTone: "text-green-700",
       badge: `+${users.filter((u) => u.status === "active").length} activos`,
       badgeClass: "bg-green-100 text-green-700",
@@ -32,7 +39,6 @@ export default function Home() {
     {
       label: "Roles del sistema",
       value: roles.length.toString(),
-      href: "/admin-core/roles",
       valueTone: "text-blue-700",
       badge: `${roles.filter((r) => r.is_global).length} globales`,
       badgeClass: "bg-blue-100 text-blue-700",
@@ -41,7 +47,6 @@ export default function Home() {
     {
       label: "Programas activos",
       value: programs.filter((p) => p.is_active).length.toString(),
-      href: "/admin-core/programas",
       valueTone: "text-purple-700",
       badge: `${programs.length} totales`,
       badgeClass: "bg-purple-100 text-purple-700",
@@ -49,11 +54,18 @@ export default function Home() {
     {
       label: "Permisos definidos",
       value: permissions.length.toString(),
-      href: "/admin-core/permisos",
       valueTone: "text-amber-700",
       badge: `${permissions.filter((p) => p.program_id === null).length} globales`,
       badgeClass: "bg-amber-100 text-amber-700",
       note: "asignables a roles",
+    },
+    {
+      label: "Grupos creados",
+      value: groups.length.toString(),
+      valueTone: "text-rose-700",
+      badge: `${groups.reduce((acc, g) => acc + (g.users?.length || 0), 0)} miembros totales`,
+      badgeClass: "bg-rose-100 text-rose-700",
+      note: "equipos de trabajo",
     },
   ];
 
@@ -93,6 +105,14 @@ export default function Home() {
       color: "text-amber-600",
       bg: "bg-amber-50",
     },
+    {
+      title: "Grupos",
+      description: "Organiza usuarios por equipos, departamentos o categorías.",
+      icon: UserPlus,
+      href: "/admin-core/grupos",
+      color: "text-rose-600",
+      bg: "bg-rose-50",
+    },
   ];
 
   const reminders = [
@@ -117,23 +137,27 @@ export default function Home() {
       description: `${permissions.filter((p) => !p.program_id).length} permisos globales no han sido asignados a ningún rol.`,
       link: "/admin-core/permisos",
     },
+    {
+      variant: "warning" as const,
+      icon: "👥",
+      title: "Grupos sin miembros",
+      description: `${groups.filter((g) => !g.users?.length).length} grupos no tienen usuarios asignados. Agrégueles miembros.`,
+      link: "/admin-core/grupos",
+    },
   ];
 
   return (
     <section class="space-y-6">
-      {/* Aviso principal */}
       <NoticeComponent
         variant="info"
         icon="🏠"
         title="Panel de administración"
-        description="Desde aquí puede gestionar todos los aspectos del sistema: usuarios, roles, programas y permisos."
+        description="Desde aquí puede gestionar todos los aspectos del sistema: usuarios, roles, programas, permisos y grupos."
       />
 
-      {/* Estadísticas con enlaces */}
       <StatsComponent items={stats} />
 
-      {/* Tarjetas de acceso rápido a los módulos */}
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {modules.map((mod) => (
           <a
             key={mod.title}
@@ -154,7 +178,6 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Recordatorios/Alertas */}
       <div class="rounded-xl border border-stone-200 bg-white p-4">
         <p class="mb-3 text-[13px] font-semibold text-stone-900">
           Alertas del sistema

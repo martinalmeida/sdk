@@ -5,6 +5,8 @@ import "./style.css";
 
 import Home from "./Home/index";
 import Users from "./Users/index";
+import Groups from "./Groups/index";
+import GroupMembers from "./Groups/members";
 import Roles from "./Roles/index";
 import Permission from "./Permissions/index";
 import Programs from "./Programs/index";
@@ -12,6 +14,8 @@ import Programs from "./Programs/index";
 const routes: RouteDefinition[] = [
   { path: "/admin-core", component: Home },
   { path: "/admin-core/usuarios", component: Users },
+  { path: "/admin-core/grupos", component: Groups },
+  { path: "/admin-core/grupos/:id/miembros", component: GroupMembers },
   { path: "/admin-core/roles", component: Roles },
   { path: "/admin-core/permisos", component: Permission },
   { path: "/admin-core/programas", component: Programs },
