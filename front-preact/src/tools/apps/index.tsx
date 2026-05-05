@@ -7,6 +7,7 @@ import {
   FileText,
   Users,
   ShieldCogCorner,
+  KeyRound,
   Settings,
 } from "lucide-preact";
 import type { LucideProps } from "lucide-preact";
@@ -119,6 +120,11 @@ export const PROGRAMS: Record<string, ProgramConfig> = {
         label: "Roles",
         href: "/roles",
         icon: ShieldCogCorner,
+      },
+      {
+        label: "Permisos",
+        href: "/permisos",
+        icon: KeyRound,
       },
       {
         label: "Programas",

@@ -1,3 +1,5 @@
+import { ComponentChildren } from "preact";
+
 type NoticeVariant = "warning" | "info" | "danger" | "success";
 
 type Props = {
@@ -5,6 +7,7 @@ type Props = {
   title: string;
   description: string;
   icon?: string;
+  children?: ComponentChildren;
 };
 
 const styles: Record<
@@ -38,9 +41,9 @@ export default function NoticeComponent({
   title,
   description,
   icon,
+  children,
 }: Props) {
   const style = styles[variant];
-
   return (
     <div
       role="status"
@@ -49,6 +52,7 @@ export default function NoticeComponent({
     >
       {icon ? <span class="mr-1">{icon}</span> : null}
       <strong>{title}</strong> {description}
+      {children}
     </div>
   );
 }

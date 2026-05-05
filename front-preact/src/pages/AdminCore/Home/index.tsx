@@ -1,86 +1,164 @@
 import { useEffect } from "preact/hooks";
 import { setPageTitle } from "../Core/hooks/useLayout";
-
+import { Users, ShieldCheck, Settings, Key, ArrowRight } from "lucide-preact";
 import NoticeComponent from "../Core/components/NoticeComponent";
 import StatsComponent from "../Core/components/StatsComponent";
+import { useUsers } from "../Users/hooks";
+import { useRoles } from "../Roles/hooks";
+import { usePrograms } from "../Programs/hooks";
+import { usePermissions } from "../Permissions/hooks";
 
 export default function Home() {
+  const { users } = useUsers();
+  const { roles } = useRoles();
+  const { programs } = usePrograms();
+  const { permissions } = usePermissions();
+
   useEffect(() => {
-    setPageTitle("Dashboard", "Panel principal");
+    setPageTitle("Dashboard", "Panel de administración general");
   }, []);
 
+  //Estadísticas dinámicas
   const stats = [
     {
-      label: "Ingresos del mes",
-      value: "$48,320.00",
+      label: "Usuarios activos",
+      value: users.filter((u) => u.status === "active").length.toString(),
+      href: "/admin-core/usuarios",
       valueTone: "text-green-700",
-      badge: "↑ 12.4%",
+      badge: `+${users.filter((u) => u.status === "active").length} activos`,
       badgeClass: "bg-green-100 text-green-700",
-      note: "vs mes ant.",
+      note: "del total registrados",
     },
     {
-      label: "Egresos del mes",
-      value: "$31,750.00",
-      valueTone: "text-red-700",
-      badge: "↑ 3.1%",
-      badgeClass: "bg-red-100 text-red-700",
-      note: "vs mes ant.",
-    },
-    {
-      label: "Utilidad neta",
-      value: "$16,570.00",
+      label: "Roles del sistema",
+      value: roles.length.toString(),
+      href: "/admin-core/roles",
       valueTone: "text-blue-700",
-      badge: "Margen 34%",
+      badge: `${roles.filter((r) => r.is_global).length} globales`,
       badgeClass: "bg-blue-100 text-blue-700",
+      note: "distribuidos entre programas",
     },
     {
-      label: "Por cobrar",
-      value: "$9,100.00",
+      label: "Programas activos",
+      value: programs.filter((p) => p.is_active).length.toString(),
+      href: "/admin-core/programas",
+      valueTone: "text-purple-700",
+      badge: `${programs.length} totales`,
+      badgeClass: "bg-purple-100 text-purple-700",
+    },
+    {
+      label: "Permisos definidos",
+      value: permissions.length.toString(),
+      href: "/admin-core/permisos",
       valueTone: "text-amber-700",
-      badge: "7 facturas",
+      badge: `${permissions.filter((p) => p.program_id === null).length} globales`,
       badgeClass: "bg-amber-100 text-amber-700",
+      note: "asignables a roles",
+    },
+  ];
+
+  const modules = [
+    {
+      title: "Usuarios",
+      description:
+        "Gestiona usuarios, asigna programas y roles, revisa permisos.",
+      icon: Users,
+      href: "/admin-core/usuarios",
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+    },
+    {
+      title: "Roles",
+      description:
+        "Crea roles globales o por programa. Define etiquetas y permisos base.",
+      icon: ShieldCheck,
+      href: "/admin-core/roles",
+      color: "text-indigo-600",
+      bg: "bg-indigo-50",
+    },
+    {
+      title: "Programas",
+      description:
+        "Administra los submódulos de la suite (DataCore, HelpCore, etc.).",
+      icon: Settings,
+      href: "/admin-core/programas",
+      color: "text-purple-600",
+      bg: "bg-purple-50",
+    },
+    {
+      title: "Permisos",
+      description: "Consulta la lista de permisos disponibles (solo lectura).",
+      icon: Key,
+      href: "/admin-core/permisos",
+      color: "text-amber-600",
+      bg: "bg-amber-50",
     },
   ];
 
   const reminders = [
     {
-      variant: "warning",
+      variant: "warning" as const,
       icon: "📌",
-      title: "IVA bimestral",
-      description: "Presentar antes del 12 de mayo. Período feb–abr 2025.",
+      title: "Usuarios sin programa asignado",
+      description: `${users.filter((u) => u.programs.length === 0).length} usuarios no tienen ningún programa asignado. Edítelos y asígneles uno.`,
+      link: "/admin-core/usuarios",
     },
     {
-      variant: "info",
+      variant: "info" as const,
       icon: "ℹ️",
-      title: "Cierre Q1",
-      description:
-        "El período cierra el 30 de abril. Verifique todos los estados.",
+      title: "Roles huérfanos",
+      description: `${roles.filter((r) => !r.is_global && !r.program_id).length} roles no están vinculados a ningún programa.`,
+      link: "/admin-core/roles",
     },
     {
-      variant: "danger",
+      variant: "danger" as const,
       icon: "⚠️",
-      title: "Auditoría activa",
-      description:
-        "No modifique asientos de marzo sin autorización del revisor.",
+      title: "Permisos no usados",
+      description: `${permissions.filter((p) => !p.program_id).length} permisos globales no han sido asignados a ningún rol.`,
+      link: "/admin-core/permisos",
     },
-  ] as const;
+  ];
 
   return (
-    <section class="space-y-4">
+    <section class="space-y-6">
+      {/* Aviso principal */}
       <NoticeComponent
-        variant="warning"
-        icon="⚠️"
-        title="3 retenciones"
-        description="vencen el 20 de abril. Realice el pago antes de la fecha límite para evitar sanciones."
+        variant="info"
+        icon="🏠"
+        title="Panel de administración"
+        description="Desde aquí puede gestionar todos los aspectos del sistema: usuarios, roles, programas y permisos."
       />
 
+      {/* Estadísticas con enlaces */}
       <StatsComponent items={stats} />
 
-      <div class="rounded-xl border border-stone-200 bg-white p-4">
-        <p class="mb-4 text-[13.5px] font-semibold text-stone-900">
-          Recordatorios
-        </p>
+      {/* Tarjetas de acceso rápido a los módulos */}
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {modules.map((mod) => (
+          <a
+            key={mod.title}
+            href={mod.href}
+            class="group rounded-xl border border-stone-200 bg-white p-4 transition-all hover:shadow-md hover:-translate-y-0.5"
+          >
+            <div
+              class={`mb-3 inline-flex rounded-lg ${mod.bg} p-2.5 text-${mod.color}`}
+            >
+              <mod.icon size={22} />
+            </div>
+            <h3 class="font-semibold text-stone-900">{mod.title}</h3>
+            <p class="mt-1 text-[12px] text-stone-500">{mod.description}</p>
+            <div class="mt-3 flex items-center text-[11px] font-medium text-[#7c3aed] group-hover:underline">
+              Ir al módulo <ArrowRight size={12} class="ml-1" />
+            </div>
+          </a>
+        ))}
+      </div>
 
+      {/* Recordatorios/Alertas */}
+      <div class="rounded-xl border border-stone-200 bg-white p-4">
+        <p class="mb-3 text-[13px] font-semibold text-stone-900">
+          Alertas del sistema
+        </p>
         <div class="space-y-2">
           {reminders.map((item) => (
             <NoticeComponent
@@ -88,8 +166,17 @@ export default function Home() {
               variant={item.variant}
               icon={item.icon}
               title={item.title}
-              description={item.description}
-            />
+              description={`${item.description} `}
+            >
+              {item.link && (
+                <a
+                  href={item.link}
+                  class="ml-2 text-xs font-medium underline hover:opacity-80"
+                >
+                  Revisar →
+                </a>
+              )}
+            </NoticeComponent>
           ))}
         </div>
       </div>
