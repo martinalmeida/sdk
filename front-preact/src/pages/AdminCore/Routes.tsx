@@ -5,10 +5,12 @@ import "./style.css";
 
 import Home from "./Home/index";
 import Users from "./Users/index";
+import Roles from "./Roles/index";
 
 const routes: RouteDefinition[] = [
   { path: "/admin-core", component: Home },
   { path: "/admin-core/usuarios", component: Users },
+  { path: "/admin-core/roles", component: Roles },
 ];
 
 export default function RoutesAdminCore() {
