@@ -27,7 +27,7 @@ export function useUserForm(onSuccess: () => void) {
     [],
   );
 
-  //Cargar catálogos si es necesario (ya se cargan en useUsers, pero por si acaso)
+  //Cargar catálogos cuando se abre el modal
   useEffect(() => {
     if (open && programsSignal.value.length === 0) {
       catalogsApi.getPrograms().then((res) => {
@@ -42,7 +42,7 @@ export function useUserForm(onSuccess: () => void) {
     }
   }, [open]);
 
-  //Resetear formulario al abrir/cerrar
+  //Resetear o cargar datos al abrir/cerrar
   useEffect(() => {
     if (!open) {
       setName("");
@@ -54,12 +54,10 @@ export function useUserForm(onSuccess: () => void) {
       setAssignedPrograms([]);
       setEditingUser(null);
     } else if (editingUser) {
-      //Cargar datos del usuario para edición
       setName(editingUser.name);
       setEmail(editingUser.email);
       setPositionId(editingUser.position?.id?.toString() || "");
       setStatus(editingUser.status);
-      //Cargar programas asignados (suponiendo que vienen en editingUser.programs)
       if (editingUser.programs) {
         setAssignedPrograms(
           editingUser.programs.map((p: any) => ({
@@ -117,22 +115,8 @@ export function useUserForm(onSuccess: () => void) {
     let res;
     if (editingUser) {
       res = await usersApi.updateUser(editingUser.id, payload);
-    } else {
-      //En creación, el backend requiere al menos un programa y rol
-      if (assignedPrograms.length === 0) {
-        alert("Debe asignar al menos un programa al usuario");
-        setLoading(false);
-        return;
-      }
-      payload.program_id = assignedPrograms[0].program_id;
-      payload.role_id = assignedPrograms[0].role_id;
-      res = await usersApi.createUser(payload);
-    }
-
-    if (!res.error) {
-      //Si hay programas asignados adicionales (solo para edición, ya que en creación solo uno)
-      if (editingUser && assignedPrograms.length > 0) {
-        //Sincronizar programas asignados (esto es más complejo, lo simplificamos)
+      //Sincronizar programas asignados (solo en edición)
+      if (!res.error && assignedPrograms.length > 0) {
         for (const prog of assignedPrograms) {
           await usersApi.assignProgram(
             editingUser.id,
@@ -142,6 +126,12 @@ export function useUserForm(onSuccess: () => void) {
           );
         }
       }
+    } else {
+      //En creación NO enviamos programas
+      res = await usersApi.createUser(payload);
+    }
+
+    if (!res.error) {
       setOpen(false);
       onSuccess();
     } else {

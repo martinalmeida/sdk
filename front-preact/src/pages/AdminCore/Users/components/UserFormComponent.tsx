@@ -139,78 +139,81 @@ export default function UserFormComponent({
         </FormFieldComponent>
       </div>
 
-      <div class="border-t border-stone-200 pt-3 mt-2">
-        <div class="flex justify-between items-center mb-2">
-          <label class="text-[12px] font-semibold text-stone-700">
-            Programas asignados
-          </label>
-          <button
-            type="button"
-            onClick={addProgram}
-            class="inline-flex items-center gap-1 text-xs text-[#7c3aed] hover:underline"
-          >
-            <Plus size={12} /> Agregar programa
-          </button>
-        </div>
-        {assignedPrograms.length === 0 ? (
-          <p class="text-[12px] text-stone-400">
-            No hay programas asignados. Agrega uno.
-          </p>
-        ) : (
-          <div class="space-y-2">
-            {assignedPrograms.map((prog, idx) => (
-              <div
-                key={idx}
-                class="flex items-center gap-2 bg-stone-50 p-2 rounded-lg"
-              >
-                <SelectComponent
-                  value={prog.program_id}
-                  onChange={(e) =>
-                    updateAssignedProgram(
-                      idx,
-                      "program_id",
-                      parseInt((e.target as HTMLSelectElement).value),
-                    )
-                  }
+      {/* Sección de programas asignados: SOLO en edición */}
+      {editingUser && (
+        <div class="border-t border-stone-200 pt-3 mt-2">
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-[12px] font-semibold text-stone-700">
+              Programas asignados
+            </label>
+            <button
+              type="button"
+              onClick={addProgram}
+              class="inline-flex items-center gap-1 text-xs text-[#7c3aed] hover:underline"
+            >
+              <Plus size={12} /> Agregar programa
+            </button>
+          </div>
+          {assignedPrograms.length === 0 ? (
+            <p class="text-[12px] text-stone-400">
+              No hay programas asignados. Agrega uno.
+            </p>
+          ) : (
+            <div class="space-y-2">
+              {assignedPrograms.map((prog, idx) => (
+                <div
+                  key={idx}
+                  class="flex items-center gap-2 bg-stone-50 p-2 rounded-lg"
                 >
-                  {programsSignal.value.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </SelectComponent>
-                <SelectComponent
-                  value={prog.role_id}
-                  onChange={(e) =>
-                    updateAssignedProgram(
-                      idx,
-                      "role_id",
-                      parseInt((e.target as HTMLSelectElement).value),
-                    )
-                  }
-                >
-                  {rolesSignal.value
-                    .filter(
-                      (r) => r.program_id === prog.program_id || r.is_global,
-                    )
-                    .map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.label}
+                  <SelectComponent
+                    value={prog.program_id}
+                    onChange={(e) =>
+                      updateAssignedProgram(
+                        idx,
+                        "program_id",
+                        parseInt((e.target as HTMLSelectElement).value),
+                      )
+                    }
+                  >
+                    {programsSignal.value.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
                       </option>
                     ))}
-                </SelectComponent>
-                <button
-                  type="button"
-                  onClick={() => removeProgram(idx)}
-                  class="text-red-500 hover:text-red-700"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                  </SelectComponent>
+                  <SelectComponent
+                    value={prog.role_id}
+                    onChange={(e) =>
+                      updateAssignedProgram(
+                        idx,
+                        "role_id",
+                        parseInt((e.target as HTMLSelectElement).value),
+                      )
+                    }
+                  >
+                    {rolesSignal.value
+                      .filter(
+                        (r) => r.program_id === prog.program_id || r.is_global,
+                      )
+                      .map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.label}
+                        </option>
+                      ))}
+                  </SelectComponent>
+                  <button
+                    type="button"
+                    onClick={() => removeProgram(idx)}
+                    class="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </ModalFormComponent>
   );
 }

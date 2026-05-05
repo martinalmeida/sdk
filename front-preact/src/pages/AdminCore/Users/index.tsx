@@ -2,6 +2,7 @@ import { useEffect } from "preact/hooks";
 import { Pencil, Trash2, Plus } from "lucide-preact";
 import DataTableComponent from "../Core/components/DatatableComponent";
 import LoaderComponent from "../Core/components/LoaderComponent";
+import NoticeComponent from "../Core/components/NoticeComponent";
 import { setPageTitle } from "../Core/hooks";
 import { useUsers, useUserForm } from "./hooks";
 import UserFormComponent from "./components/UserFormComponent";
@@ -69,7 +70,13 @@ export default function UsersPage() {
 
   return (
     <div class="p-6">
-      <div class="flex justify-between items-center mb-6">
+      <NoticeComponent
+        variant="info"
+        title="ℹ️ ¿Cómo asignar programas a un usuario?"
+        description="Primero crea el usuario con sus datos básicos. Luego, edítalo y en la sección 'Programas asignados' podrás agregar uno o más programas, seleccionar un rol para cada uno y activar/desactivar el acceso."
+      />
+
+      <div class="flex justify-between items-center mb-6 mt-4">
         <h1 class="text-2xl font-bold text-stone-900">Usuarios</h1>
         <button
           onClick={() => form.openCreate()}
