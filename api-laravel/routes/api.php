@@ -81,6 +81,15 @@ Route::middleware(['auth:api', 'session.valid'])->group(function () {
 
             Route::middleware('permission:admin.permissions.assign,admin-core')
                 ->delete('users/{user}/revoke-permission', [AdminUserController::class, 'revokePermission']);
+                
+            Route::middleware('permission:admin.permissions.create,admin-core')
+                ->post('permissions', [PermissionController::class, 'store']);
+
+            Route::middleware('permission:admin.permissions.update,admin-core')
+                ->put('permissions/{permission}', [PermissionController::class, 'update']);
+
+            Route::middleware('permission:admin.permissions.delete,admin-core')
+                ->delete('permissions/{permission}', [PermissionController::class, 'destroy']);
 
             // Programas de la suite
             Route::middleware('permission:admin.programs.read,admin-core')
