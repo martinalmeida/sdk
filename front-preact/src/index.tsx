@@ -4,24 +4,50 @@ import {
   Route,
   hydrate,
   prerender as ssr,
+  useLocation,
 } from "preact-iso";
-import { isAuthenticated } from "./pages/Auth/stores";
+import { isAuthenticated, logout } from "./pages/Auth/stores";
 import "./style.css";
 import { ComponentChildren } from "preact";
-
 import AuthPage from "./pages/Auth/index";
 import BasePage from "./pages/Base/index";
 import RoutesAdminCore from "./pages/AdminCore/Routes";
 import RoutesDataCore from "./pages/DataCore/Routes";
 import { NotFound } from "./pages/_404";
+import { CoreApi } from "./tools/api";
+import { pushToast } from "./tools/alerts";
+import ToastContainer from "./tools/alerts/ToastContainer";
 
+//── Configuración global del cliente HTTP ─────────────────────
+CoreApi.configure({
+  unauthorizedRedirectUrl: "/",
+  onUnauthorized: () => {
+    logout();
+  },
+});
+
+//── Interceptor global de errores ─────────────────────────────
+const SILENT_STATUSES = [401, 422];
+CoreApi.addResponseInterceptor((response) => {
+  if (
+    !response.ok &&
+    response.error &&
+    !SILENT_STATUSES.includes(response.status)
+  ) {
+    pushToast(response.error, "error");
+  }
+  return response;
+});
+
+//── Guards de rutas ───────────────────────────────────────────
 function ProtectedRoute({
   component: Component,
 }: {
   component: () => ComponentChildren;
 }) {
+  const { route } = useLocation();
   if (!isAuthenticated.value) {
-    window.location.href = "/";
+    route("/", true);
     return null;
   }
   return <Component />;
@@ -32,8 +58,9 @@ function GuestRoute({
 }: {
   component: () => ComponentChildren;
 }) {
+  const { route } = useLocation();
   if (isAuthenticated.value) {
-    window.location.href = "/base";
+    route("/base", true);
     return null;
   }
   return <Component />;
@@ -44,12 +71,10 @@ export function App() {
     <LocationProvider>
       <main>
         <Router>
-          {/* Solo accesible si NO está autenticado */}
           <Route
             path="/"
             component={() => <GuestRoute component={AuthPage} />}
           />
-          {/* Rutas protegidas */}
           <Route
             path="/base"
             component={() => <ProtectedRoute component={BasePage} />}
@@ -65,6 +90,7 @@ export function App() {
           <Route default component={NotFound} />
         </Router>
       </main>
+      <ToastContainer />
     </LocationProvider>
   );
 }

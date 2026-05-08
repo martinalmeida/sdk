@@ -3,6 +3,7 @@ import { roles, rolesLoading, rolesError } from "../stores/rolesStore";
 import { rolesApi } from "../services";
 import { programs as programsSignal } from "../../Users/stores/programsStore";
 import { catalogsApi } from "../../Users/services/catalogsApi";
+import { pushToast } from "../../../../tools/alerts";
 
 export function useRoles() {
   const [openModal, setOpenModal] = useState(false);
@@ -14,7 +15,6 @@ export function useRoles() {
   const [programId, setProgramId] = useState("");
   const [loading, setLoading] = useState(false);
 
-  //Cargar programas para el select
   const loadPrograms = async () => {
     if (programsSignal.value.length === 0) {
       const res = await catalogsApi.getPrograms();
@@ -30,6 +30,15 @@ export function useRoles() {
     rolesLoading.value = false;
   };
 
+  const resetForm = () => {
+    setName("");
+    setLabel("");
+    setDescription("");
+    setIsGlobal(false);
+    setProgramId("");
+    setEditingRole(null);
+  };
+
   const handleSubmit = async () => {
     if (!name || !label) return;
     setLoading(true);
@@ -40,29 +49,22 @@ export function useRoles() {
       is_global: isGlobal,
       program_id: isGlobal ? null : programId ? parseInt(programId) : null,
     };
-    let res;
-    if (editingRole) {
-      res = await rolesApi.updateRole(editingRole.id, payload);
-    } else {
-      res = await rolesApi.createRole(payload);
-    }
+    const res = editingRole
+      ? await rolesApi.updateRole(editingRole.id, payload)
+      : await rolesApi.createRole(payload);
+
     if (!res.error) {
       await loadRoles();
       setOpenModal(false);
       resetForm();
-    } else {
-      alert(res.error);
+      pushToast(
+        editingRole
+          ? "Rol actualizado correctamente"
+          : "Rol creado correctamente",
+        "success",
+      );
     }
     setLoading(false);
-  };
-
-  const resetForm = () => {
-    setName("");
-    setLabel("");
-    setDescription("");
-    setIsGlobal(false);
-    setProgramId("");
-    setEditingRole(null);
   };
 
   const openCreate = () => {
@@ -85,8 +87,10 @@ export function useRoles() {
   const deleteRole = async (id: number) => {
     if (confirm("¿Eliminar este rol?")) {
       const res = await rolesApi.deleteRole(id);
-      if (!res.error) await loadRoles();
-      else alert(res.error);
+      if (!res.error) {
+        await loadRoles();
+        pushToast("Rol eliminado correctamente", "success");
+      }
     }
   };
 

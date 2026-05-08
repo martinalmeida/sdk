@@ -1,1 +1,0 @@
-export { permissionsApi } from "./permissionsApi";

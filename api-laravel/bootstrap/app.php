@@ -13,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'session.valid' => \App\Http\Middleware\ValidateJwtSession::class,
             'program.access' => \App\Http\Middleware\CheckProgramAccess::class,
-            'permission' => \App\Http\Middleware\CheckPermission::class,
+            'role' => \App\Http\Middleware\CheckRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

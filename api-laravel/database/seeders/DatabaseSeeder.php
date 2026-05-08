@@ -2,211 +2,272 @@
 
 namespace Database\Seeders;
 
-use App\Models\Permission;
-use App\Models\Position;
-use App\Models\Role;
-use App\Models\SuiteProgram;
-use App\Models\User;
+use App\Models\AdminCore\Position;
+use App\Models\AdminCore\Role;
+use App\Models\AdminCore\SuiteProgram;
+use App\Models\AdminCore\User;
+use App\Models\DataCore\ChartType;
+use App\Models\DataCore\ChartTypeFilter;
+use App\Models\DataCore\ChartTypeRule;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Programas
-        $dataCore = SuiteProgram::create([
-            'name' => 'DataCore',
-            'slug' => 'data-core',
-            'description' => 'Panel Estadístico',
-            'version' => '0.1',
-            'is_active' => true,
-        ]);
+        DB::transaction(function () {
 
-        $adminCore = SuiteProgram::create([
-            'name' => 'AdminCore',
-            'slug' => 'admin-core',
-            'description' => 'Administración de la suite',
-            'version' => '0.1',
-            'is_active' => true,
-        ]);
+            $dataCore = SuiteProgram::updateOrCreate(
+                ['slug' => 'data-core'],
+                [
+                    'name' => 'DataCore',
+                    'description' => 'Panel Estadístico',
+                    'version' => '0.1',
+                    'is_active' => true,
+                ]
+            );
 
-        // 2. Cargos (positions)
-        $contador = Position::create(['name' => 'Contador']);
-        Position::create(['name' => 'Gerente']);
-        Position::create(['name' => 'Auxiliar Contable']);
-        Position::create(['name' => 'Administrador de Sistema']);
+            $adminCore = SuiteProgram::updateOrCreate(
+                ['slug' => 'admin-core'],
+                [
+                    'name' => 'AdminCore',
+                    'description' => 'Administración de la suite',
+                    'version' => '0.1',
+                    'is_active' => true,
+                ]
+            );
 
-        // 3. Roles
-        $superAdmin = Role::create([
-            'name' => 'super_admin',
-            'label' => 'Super Administrador',
-            'is_global' => true,
-            'program_id' => null,
-        ]);
+            $contador = Position::firstOrCreate(['name' => 'Contador']);
 
-        // Roles DataCore
-        $adminDataCore = Role::create([
-            'name' => 'admin_data_core',
-            'label' => 'Administrador DataCore',
-            'is_global' => false,
-            'program_id' => $dataCore->id,
-        ]);
-        $userDataCore = Role::create([
-            'name' => 'user_data_core',
-            'label' => 'Usuario DataCore',
-            'is_global' => false,
-            'program_id' => $dataCore->id,
-        ]);
+            $adminDataCore = Role::updateOrCreate(
+                ['name' => 'admin_data_core'],
+                [
+                    'label' => 'Administrador DataCore',
+                    'is_global' => false,
+                    'program_id' => $dataCore->id,
+                ]
+            );
 
-        // Roles AdminCore
-        $superAdminCore = Role::create([
-            'name' => 'super_admin_core',
-            'label' => 'Super Administrador del Sistema',
-            'is_global' => false,
-            'program_id' => $adminCore->id,
-        ]);
-        $adminAdminCore = Role::create([
-            'name' => 'admin_admin_core',
-            'label' => 'Administrador de AdminCore',
-            'is_global' => false,
-            'program_id' => $adminCore->id,
-        ]);
+            $userDataCore = Role::updateOrCreate(
+                ['name' => 'user_data_core'],
+                [
+                    'label' => 'Usuario DataCore',
+                    'is_global' => false,
+                    'program_id' => $dataCore->id,
+                ]
+            );
 
-        // 4. Permisos DataCore
-        $dataPerms = [
-            ['name' => 'users.read', 'label' => 'Ver usuarios', 'group' => 'users'],
-            ['name' => 'users.create', 'label' => 'Crear usuarios', 'group' => 'users'],
-            ['name' => 'users.update', 'label' => 'Editar usuarios', 'group' => 'users'],
-            ['name' => 'users.delete', 'label' => 'Eliminar usuarios', 'group' => 'users'],
-            ['name' => 'reports.read', 'label' => 'Ver reportes', 'group' => 'reports'],
-        ];
-        foreach ($dataPerms as $perm) {
-            Permission::create(array_merge($perm, ['program_id' => $dataCore->id]));
-        }
+            $adminAdminCore = Role::updateOrCreate(
+                ['name' => 'admin_admin_core'],
+                [
+                    'label' => 'Administrador de AdminCore',
+                    'is_global' => false,
+                    'program_id' => $adminCore->id,
+                ]
+            );
 
-        // 5. Permisos AdminCore
-        $adminPerms = [
-            ['name' => 'admin.users.read', 'label' => 'Listar usuarios', 'group' => 'users'],
-            ['name' => 'admin.users.create', 'label' => 'Crear usuarios', 'group' => 'users'],
-            ['name' => 'admin.users.update', 'label' => 'Editar usuarios', 'group' => 'users'],
-            ['name' => 'admin.users.delete', 'label' => 'Eliminar usuarios', 'group' => 'users'],
-            ['name' => 'admin.groups.read', 'label' => 'Ver grupos', 'group' => 'groups'],
-            ['name' => 'admin.groups.create', 'label' => 'Crear grupos', 'group' => 'groups'],
-            ['name' => 'admin.groups.update', 'label' => 'Editar grupos', 'group' => 'groups'],
-            ['name' => 'admin.groups.delete', 'label' => 'Eliminar grupos', 'group' => 'groups'],
-            ['name' => 'admin.roles.read', 'label' => 'Listar roles', 'group' => 'roles'],
-            ['name' => 'admin.roles.create', 'label' => 'Crear roles', 'group' => 'roles'],
-            ['name' => 'admin.roles.update', 'label' => 'Editar roles', 'group' => 'roles'],
-            ['name' => 'admin.roles.delete', 'label' => 'Eliminar roles', 'group' => 'roles'],
-            ['name' => 'admin.permissions.read', 'label' => 'Listar permisos', 'group' => 'permissions'],
-            ['name' => 'admin.permissions.assign', 'label' => 'Asignar permisos', 'group' => 'permissions'],
-            ['name' => 'admin.permissions.create', 'label' => 'Crear permisos', 'group' => 'permissions'],
-            ['name' => 'admin.permissions.update', 'label' => 'Editar permisos', 'group' => 'permissions'],
-            ['name' => 'admin.permissions.delete', 'label' => 'Eliminar permisos', 'group' => 'permissions'],
-            ['name' => 'admin.programs.read', 'label' => 'Ver programas', 'group' => 'programs'],
-            ['name' => 'admin.programs.create', 'label' => 'Crear programas', 'group' => 'programs'],
-            ['name' => 'admin.programs.update', 'label' => 'Editar programas', 'group' => 'programs'],
-            ['name' => 'admin.programs.delete', 'label' => 'Eliminar programas', 'group' => 'programs'],
-            ['name' => 'admin.positions.read', 'label' => 'Ver cargos', 'group' => 'positions'],
-            ['name' => 'admin.positions.create', 'label' => 'Crear cargos', 'group' => 'positions'],
-            ['name' => 'admin.positions.update', 'label' => 'Editar cargos', 'group' => 'positions'],
-            ['name' => 'admin.positions.delete', 'label' => 'Eliminar cargos', 'group' => 'positions'],
-        ];
-        foreach ($adminPerms as $perm) {
-            Permission::create(array_merge($perm, ['program_id' => $adminCore->id]));
-        }
+            $superAdmin = Role::updateOrCreate(
+                ['name' => 'super_admin'],
+                [
+                    'label' => 'Super Administrador Global',
+                    'is_global' => true,
+                    'program_id' => null,
+                ]
+            );
 
-        // 6. Usuarios y asignaciones
+            $adminUser = User::updateOrCreate(
+                ['email' => 'admin@suite.com'],
+                [
+                    'name' => 'Administrador',
+                    'password' => Hash::make('password'),
+                    'position_id' => $contador->id,
+                    'status' => 'active',
+                ]
+            );
 
-        // Super Admin (global, tiene acceso a todo)
-        $superUser = User::create([
-            'name' => 'Super Admin',
-            'email' => 'admin@suite.com',
-            'password' => bcrypt('password'),
-            'position_id' => $contador->id,
-            'status' => 'active',
-        ]);
-        $superUser->programs()->attach($dataCore->id, [
-            'role_id' => $superAdmin->id,
-            'is_active' => true,
-            'granted_at' => now(),
-        ]);
-        $superUser->programs()->attach($adminCore->id, [
-            'role_id' => $superAdmin->id,
-            'is_active' => true,
-            'granted_at' => now(),
-        ]);
-
-        // Administrador de DataCore (maria@suite.com)
-        $adminUser = User::create([
-            'name' => 'María Admin',
-            'email' => 'maria@suite.com',
-            'password' => bcrypt('password'),
-            'position_id' => $contador->id,
-            'status' => 'active',
-        ]);
-        $adminUser->programs()->attach($dataCore->id, [
-            'role_id' => $adminDataCore->id,
-            'is_active' => true,
-            'granted_at' => now(),
-        ]);
-
-        // Asignar permisos individuales a maria (DataCore)
-        $permNamesData = ['users.read', 'users.create', 'users.update', 'users.delete', 'reports.read'];
-        $permIdsData = Permission::whereIn('name', $permNamesData)
-            ->where('program_id', $dataCore->id)
-            ->pluck('id');
-        foreach ($permIdsData as $permId) {
-            $adminUser->permissions()->syncWithoutDetaching([
-                $permId => ['program_id' => $dataCore->id, 'granted' => true],
+            $adminUser->programs()->syncWithoutDetaching([
+                $dataCore->id => [
+                    'role_id' => $adminDataCore->id,
+                    'is_active' => true,
+                    'granted_at' => now(),
+                ],
+                $adminCore->id => [
+                    'role_id' => $adminAdminCore->id,
+                    'is_active' => true,
+                    'granted_at' => now(),
+                ],
             ]);
-        }
 
-        // Administrador de AdminCore (carlos@suite.com)
-        $adminAdmin = User::create([
-            'name' => 'Carlos Admin',
-            'email' => 'carlos@suite.com',
-            'password' => bcrypt('password'),
-            'position_id' => $contador->id,
-            'status' => 'active',
-        ]);
-        $adminAdmin->programs()->attach($adminCore->id, [
-            'role_id' => $adminAdminCore->id,
-            'is_active' => true,
-            'granted_at' => now(),
-        ]);
+            $normalUser = User::updateOrCreate(
+                ['email' => 'juan@suite.com'],
+                [
+                    'name' => 'Juan Díaz',
+                    'password' => Hash::make('password'),
+                    'position_id' => $contador->id,
+                    'status' => 'active',
+                ]
+            );
 
-        // Asignar todos los permisos de AdminCore a carlos
-        $permIdsAdmin = Permission::where('program_id', $adminCore->id)->pluck('id');
-        foreach ($permIdsAdmin as $permId) {
-            $adminAdmin->permissions()->syncWithoutDetaching([
-                $permId => ['program_id' => $adminCore->id, 'granted' => true],
+            $normalUser->programs()->syncWithoutDetaching([
+                $dataCore->id => [
+                    'role_id' => $userDataCore->id,
+                    'is_active' => true,
+                    'granted_at' => now(),
+                ],
             ]);
-        }
 
-        // Usuario normal DataCore (juan@suite.com)
-        $normalUser = User::create([
-            'name' => 'Juan Díaz',
-            'email' => 'juan@suite.com',
-            'password' => bcrypt('password'),
-            'position_id' => $contador->id,
-            'status' => 'active',
-        ]);
-        $normalUser->programs()->attach($dataCore->id, [
-            'role_id' => $userDataCore->id,
-            'is_active' => true,
-            'granted_at' => now(),
-        ]);
+            // ========== TIPOS DE GRÁFICO Y SUS REGLAS/FILTROS ==========
 
-        // Asignar permisos limitados a juan
-        $permNamesNormal = ['users.read', 'reports.read'];
-        $permIdsNormal = Permission::whereIn('name', $permNamesNormal)
-            ->where('program_id', $dataCore->id)
-            ->pluck('id');
-        foreach ($permIdsNormal as $permId) {
-            $normalUser->permissions()->syncWithoutDetaching([
-                $permId => ['program_id' => $dataCore->id, 'granted' => true],
-            ]);
-        }
+            // 1. Gráfico de barras
+            $bar = ChartType::updateOrCreate(
+                ['name' => 'bar'],
+                [
+                    'label' => 'Gráfico de barras',
+                    'description' => 'Comparación de valores mediante barras verticales/horizontales',
+                    'icon' => 'BarChart3',
+                    'supports_multiple_series' => true,
+                    'requires_category_axis' => true,
+                    'requires_value_axis' => true,
+                    'is_active' => true,
+                ]
+            );
+
+            ChartTypeRule::updateOrCreate(
+                ['chart_type_id' => $bar->id, 'rule_key' => 'min_columns'],
+                ['rule_value' => '2', 'description' => 'Necesita al menos 2 columnas (categoría y valor)']
+            );
+            ChartTypeRule::updateOrCreate(
+                ['chart_type_id' => $bar->id, 'rule_key' => 'value_column_numeric'],
+                ['rule_value' => 'true', 'description' => 'La columna de valores debe ser numérica']
+            );
+
+            ChartTypeFilter::updateOrCreate(
+                ['chart_type_id' => $bar->id, 'name' => 'date_range'],
+                [
+                    'label' => 'Rango de fechas',
+                    'input_type' => 'date_range',
+                    'sql_placeholder' => ':date_from, :date_to',
+                    'sql_injection_mode' => 'where',
+                    'is_required' => false,
+                ]
+            );
+
+            // 2. Gráfico de líneas
+            $line = ChartType::updateOrCreate(
+                ['name' => 'line'],
+                [
+                    'label' => 'Gráfico de líneas',
+                    'description' => 'Evolución temporal de métricas',
+                    'icon' => 'LineChart',
+                    'supports_multiple_series' => true,
+                    'requires_category_axis' => true,
+                    'requires_value_axis' => true,
+                    'is_active' => true,
+                ]
+            );
+
+            ChartTypeRule::updateOrCreate(
+                ['chart_type_id' => $line->id, 'rule_key' => 'min_columns'],
+                ['rule_value' => '2', 'description' => 'Necesita al menos 2 columnas (categoría y valor)']
+            );
+            ChartTypeRule::updateOrCreate(
+                ['chart_type_id' => $line->id, 'rule_key' => 'value_column_numeric'],
+                ['rule_value' => 'true', 'description' => 'Los valores deben ser numéricos']
+            );
+            ChartTypeRule::updateOrCreate(
+                ['chart_type_id' => $line->id, 'rule_key' => 'has_time_category'],
+                ['rule_value' => 'false', 'description' => 'La categoría debe ser temporal (opcional)']
+            );
+
+            ChartTypeFilter::updateOrCreate(
+                ['chart_type_id' => $line->id, 'name' => 'date_range'],
+                [
+                    'label' => 'Rango de fechas',
+                    'input_type' => 'date_range',
+                    'sql_placeholder' => ':date_from, :date_to',
+                    'sql_injection_mode' => 'where',
+                    'is_required' => false,
+                ]
+            );
+
+            // 3. Gráfico circular (pie)
+            $pie = ChartType::updateOrCreate(
+                ['name' => 'pie'],
+                [
+                    'label' => 'Gráfico circular',
+                    'description' => 'Proporciones de categorías',
+                    'icon' => 'PieChart',
+                    'supports_multiple_series' => false,
+                    'requires_category_axis' => true,
+                    'requires_value_axis' => true,
+                    'is_active' => true,
+                ]
+            );
+
+            ChartTypeRule::updateOrCreate(
+                ['chart_type_id' => $pie->id, 'rule_key' => 'exactly_two_columns'],
+                ['rule_value' => 'true', 'description' => 'Necesita exactamente 2 columnas: categoría y valor']
+            );
+            ChartTypeRule::updateOrCreate(
+                ['chart_type_id' => $pie->id, 'rule_key' => 'value_column_numeric'],
+                ['rule_value' => 'true', 'description' => 'El valor debe ser numérico']
+            );
+
+            ChartTypeFilter::updateOrCreate(
+                ['chart_type_id' => $pie->id, 'name' => 'category_filter'],
+                [
+                    'label' => 'Filtrar categoría',
+                    'input_type' => 'select',
+                    'sql_placeholder' => ':category_id',
+                    'sql_injection_mode' => 'where',
+                    'is_required' => false,
+                    'options' => json_encode(['opcion1' => 'Opción 1']), // ejemplo
+                ]
+            );
+
+            // 4. Tabla (simple)
+            $table = ChartType::updateOrCreate(
+                ['name' => 'table'],
+                [
+                    'label' => 'Tabla',
+                    'description' => 'Datos en formato tabular',
+                    'icon' => 'Table',
+                    'supports_multiple_series' => false,
+                    'requires_category_axis' => false,
+                    'requires_value_axis' => false,
+                    'is_active' => true,
+                ]
+            );
+
+            ChartTypeRule::updateOrCreate(
+                ['chart_type_id' => $table->id, 'rule_key' => 'min_columns'],
+                ['rule_value' => '1', 'description' => 'Al menos una columna']
+            );
+
+            // 5. Indicador KPI
+            $kpi = ChartType::updateOrCreate(
+                ['name' => 'kpi'],
+                [
+                    'label' => 'Indicador KPI',
+                    'description' => 'Valor único con variación',
+                    'icon' => 'Gauge',
+                    'supports_multiple_series' => false,
+                    'requires_category_axis' => false,
+                    'requires_value_axis' => true,
+                    'is_active' => true,
+                ]
+            );
+
+            ChartTypeRule::updateOrCreate(
+                ['chart_type_id' => $kpi->id, 'rule_key' => 'exactly_one_column'],
+                ['rule_value' => 'true', 'description' => 'Debe devolver una sola fila con una columna numérica']
+            );
+            ChartTypeRule::updateOrCreate(
+                ['chart_type_id' => $kpi->id, 'rule_key' => 'value_column_numeric'],
+                ['rule_value' => 'true', 'description' => 'El valor debe ser numérico']
+            );
+        });
     }
 }

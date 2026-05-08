@@ -2,14 +2,14 @@ import { ComponentChildren } from 'preact';
 import { useState, useMemo } from 'preact/hooks';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-preact';
 
-interface Column {
+export interface Column {
     key: string;
     label: string;
     align?: 'left' | 'right' | 'center';
     className?: string;
 }
 
-interface Props {
+export interface Props {
     columns: Column[];
     data: Record<string, ComponentChildren>[];
     pageSize?: number;

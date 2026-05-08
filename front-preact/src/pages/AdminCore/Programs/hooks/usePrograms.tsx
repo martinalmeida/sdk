@@ -6,12 +6,11 @@ import {
   Program,
 } from "../stores/programsStore";
 import { programsApi } from "../services";
+import { pushToast } from "../../../../tools/alerts";
 
 export function usePrograms() {
   const [openModal, setOpenModal] = useState(false);
   const [editing, setEditing] = useState<Program | null>(null);
-
-  //Form fields
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
@@ -56,7 +55,7 @@ export function usePrograms() {
 
   const handleSubmit = async () => {
     if (!name || !slug) {
-      alert("Nombre y slug son obligatorios");
+      pushToast("Nombre y slug son obligatorios", "warning");
       return;
     }
     setLoadingSubmit(true);
@@ -67,18 +66,20 @@ export function usePrograms() {
       version,
       is_active: isActive,
     };
-    let res;
-    if (editing) {
-      res = await programsApi.updateProgram(editing.id, payload);
-    } else {
-      res = await programsApi.createProgram(payload);
-    }
+    const res = editing
+      ? await programsApi.updateProgram(editing.id, payload)
+      : await programsApi.createProgram(payload);
+
     if (!res.error) {
       await loadPrograms();
       setOpenModal(false);
       resetForm();
-    } else {
-      alert(res.error);
+      pushToast(
+        editing
+          ? "Programa actualizado correctamente"
+          : "Programa creado correctamente",
+        "success",
+      );
     }
     setLoadingSubmit(false);
   };
@@ -92,8 +93,7 @@ export function usePrograms() {
       const res = await programsApi.deleteProgram(id);
       if (!res.error) {
         await loadPrograms();
-      } else {
-        alert(res.error);
+        pushToast("Programa eliminado correctamente", "success");
       }
     }
   };

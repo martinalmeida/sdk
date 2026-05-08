@@ -36,18 +36,6 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        Schema::create('permissions', function (Blueprint $table) {
-            $table->id();
-            $table->string('name', 100)->unique();
-            $table->string('label', 100);
-            $table->string('group', 50);
-            $table->foreignId('program_id')
-                ->nullable()
-                ->constrained('suite_programs')
-                ->cascadeOnDelete();
-            $table->timestamps();
-        });
-
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -80,31 +68,12 @@ return new class extends Migration {
             $table->timestamps();
             $table->unique(['user_id', 'program_id']);
         });
-
-        Schema::create('user_permissions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')
-                ->constrained('users')
-                ->cascadeOnDelete();
-            $table->foreignId('permission_id')
-                ->constrained('permissions')
-                ->cascadeOnDelete();
-            $table->foreignId('program_id')
-                ->nullable()
-                ->constrained('suite_programs')
-                ->cascadeOnDelete();
-            $table->boolean('granted')->default(true);
-            $table->timestamps();
-            $table->unique(['user_id', 'permission_id', 'program_id']);
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('user_permissions');
         Schema::dropIfExists('user_programs');
         Schema::dropIfExists('users');
-        Schema::dropIfExists('permissions');
         Schema::dropIfExists('roles');
         Schema::dropIfExists('positions');
         Schema::dropIfExists('suite_programs');

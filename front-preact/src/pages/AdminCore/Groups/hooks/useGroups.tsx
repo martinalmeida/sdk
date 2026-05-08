@@ -7,6 +7,7 @@ import {
 } from "../stores/groupsStore";
 import { groupsApi } from "../services";
 import { usersApi } from "../../Users/services";
+import { pushToast } from "../../../../tools/alerts";
 
 export function useGroups() {
   const [openModal, setOpenModal] = useState(false);
@@ -53,18 +54,22 @@ export function useGroups() {
     if (!name) return;
     setLoadingSubmit(true);
     const payload = { name, description: description || null };
-    let res;
-    if (editing) {
-      res = await groupsApi.updateGroup(editing.id, payload);
-    } else {
-      res = await groupsApi.createGroup(payload);
-    }
+    const res = editing
+      ? await groupsApi.updateGroup(editing.id, payload)
+      : await groupsApi.createGroup(payload);
+
     if (!res.error) {
       await loadGroups();
       await loadUsers();
       setOpenModal(false);
       resetForm();
-    } else alert(res.error);
+      pushToast(
+        editing
+          ? "Grupo actualizado correctamente"
+          : "Grupo creado correctamente",
+        "success",
+      );
+    }
     setLoadingSubmit(false);
   };
 
@@ -74,18 +79,17 @@ export function useGroups() {
       if (!res.error) {
         await loadGroups();
         await loadUsers();
-      } else alert(res.error);
+        pushToast("Grupo eliminado correctamente", "success");
+      }
     }
   };
 
-  // Members management – ahora devuelven los datos actualizados
   const addMembers = async (groupId: number, userIds: number[]) => {
     const res = await groupsApi.assignUsers(groupId, userIds);
     if (!res.error) {
       await loadGroups();
       await loadUsers();
-    } else {
-      alert(res.error);
+      pushToast("Miembros añadidos correctamente", "success");
     }
     return !res.error;
   };
@@ -95,8 +99,7 @@ export function useGroups() {
     if (!res.error) {
       await loadGroups();
       await loadUsers();
-    } else {
-      alert(res.error);
+      pushToast("Miembro eliminado del grupo", "success");
     }
     return !res.error;
   };

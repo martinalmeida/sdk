@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Models\User;
-use App\Models\Role;
+use App\Models\AdminCore\User;
+use App\Models\AdminCore\Role;
 use App\Services\Auth\SessionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -77,8 +77,9 @@ class AuthController extends Controller
             'position' => $user->position?->name,
         ];
 
-        if (!$detailed)
+        if (!$detailed) {
             return $base;
+        }
 
         return array_merge($base, [
             'programs' => $user->programs->map(fn($p) => [
@@ -87,7 +88,6 @@ class AuthController extends Controller
                 'slug' => $p->slug,
                 'role' => Role::find($p->pivot->role_id)?->label,
                 'is_active' => (bool) $p->pivot->is_active,
-                'permissions' => $user->getPermissionsForProgram($p->slug),
             ]),
         ]);
     }

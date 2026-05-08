@@ -7,8 +7,10 @@ import {
   FileText,
   Users,
   UserPlus,
-  Key,
+  Briefcase,
   Settings,
+  LayoutGrid,
+  Info,
 } from "lucide-preact";
 import type { LucideProps } from "lucide-preact";
 
@@ -37,60 +39,6 @@ export interface ProgramConfig {
 }
 
 export const PROGRAMS: Record<string, ProgramConfig> = {
-  "data-core": {
-    label: "DataCore",
-    description:
-      "Analítica estadística y big data para empresas multidepartamentales",
-    version: "v0.1",
-    accentColor: "#cc8b3c",
-    bgFrom: "#fef7ed",
-    bgTo: "#fef3e2",
-    badgeBg: "rgba(251,191,36,0.15)",
-    badgeText: "#92400e",
-    url: "/data-core",
-    available: true,
-    icon: BarChart3,
-    menus: [
-      {
-        label: "Dashboard",
-        href: "/",
-        icon: LayoutDashboard,
-        matchExact: true,
-      },
-      {
-        label: "Usuarios",
-        href: "/usuarios",
-        icon: FileText,
-      },
-    ],
-  },
-  "help-core": {
-    label: "HelpCore",
-    description:
-      "Gestión de tickets de soporte para equipos multidepartamentales",
-    version: "v0.1",
-    accentColor: "#2563eb",
-    bgFrom: "#eef4ff",
-    bgTo: "#e0ecff",
-    badgeBg: "rgba(59,130,246,0.12)",
-    badgeText: "#1e40af",
-    url: "/help-core",
-    available: false,
-    icon: LifeBuoy,
-    menus: [
-      {
-        label: "Dashboard",
-        href: "/",
-        icon: LayoutDashboard,
-        matchExact: true,
-      },
-      {
-        label: "Tickets",
-        href: "/tickets",
-        icon: FileText,
-      },
-    ],
-  },
   "admin-core": {
     label: "AdminCore",
     description:
@@ -127,14 +75,83 @@ export const PROGRAMS: Record<string, ProgramConfig> = {
         icon: Settings,
       },
       {
-        label: "Permisos",
-        href: "/permisos",
-        icon: Key,
+        label: "Cargos",
+        href: "/cargos",
+        icon: Briefcase,
       },
       {
         label: "Grupos",
         href: "/grupos",
         icon: UserPlus,
+      },
+    ],
+  },
+  "data-core": {
+    label: "DataCore",
+    description:
+      "Analítica estadística y big data para empresas multidepartamentales",
+    version: "v0.1",
+    accentColor: "#cc8b3c",
+    bgFrom: "#fef7ed",
+    bgTo: "#fef3e2",
+    badgeBg: "rgba(251,191,36,0.15)",
+    badgeText: "#92400e",
+    url: "/data-core",
+    available: true,
+    icon: BarChart3,
+    menus: [
+      {
+        label: "Dashboard",
+        href: "/",
+        icon: LayoutDashboard,
+        matchExact: true,
+      },
+      {
+        label: "Gráficas",
+        href: "/graficas",
+        icon: BarChart3,
+      },
+      {
+        label: "Tableros",
+        href: "/tableros",
+        icon: LayoutGrid,
+      },
+      {
+        label: "Tipos de gráfico",
+        href: "/tipos-grafico",
+        icon: Info,
+      },
+      {
+        label: "Logs de ejecución",
+        href: "/logs",
+        icon: FileText,
+      },
+    ],
+  },
+  "help-core": {
+    label: "HelpCore",
+    description:
+      "Gestión de tickets de soporte para equipos multidepartamentales",
+    version: "v0.1",
+    accentColor: "#2563eb",
+    bgFrom: "#eef4ff",
+    bgTo: "#e0ecff",
+    badgeBg: "rgba(59,130,246,0.12)",
+    badgeText: "#1e40af",
+    url: "/help-core",
+    available: true,
+    icon: LifeBuoy,
+    menus: [
+      {
+        label: "Dashboard",
+        href: "/",
+        icon: LayoutDashboard,
+        matchExact: true,
+      },
+      {
+        label: "Tickets",
+        href: "/tickets",
+        icon: FileText,
       },
     ],
   },

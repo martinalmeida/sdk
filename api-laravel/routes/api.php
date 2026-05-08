@@ -1,13 +1,16 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\DataCore\UserController;
-use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Admin\GroupController;
-use App\Http\Controllers\Admin\RoleController;
-use App\Http\Controllers\Admin\PermissionController;
-use App\Http\Controllers\Admin\ProgramController;
-use App\Http\Controllers\Admin\PositionController;
+use App\Http\Controllers\AdminCore\UserController;
+use App\Http\Controllers\AdminCore\GroupController;
+use App\Http\Controllers\AdminCore\RoleController;
+use App\Http\Controllers\AdminCore\ProgramController;
+use App\Http\Controllers\AdminCore\PositionController;
+use App\Http\Controllers\DataCore\ChartTypeController;
+use App\Http\Controllers\DataCore\ChartController;
+use App\Http\Controllers\DataCore\ChartExecutionController;
+use App\Http\Controllers\DataCore\DashboardController;
+use App\Http\Controllers\DataCore\DashboardAccessController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('health', fn() => response()->json(['status' => 'ok']));
@@ -19,134 +22,120 @@ Route::middleware(['auth:api', 'session.valid'])->group(function () {
     Route::post('logout-all', [AuthController::class, 'logoutAll']);
     Route::get('me', [AuthController::class, 'me']);
 
-    // ==================== AdminCore ====================
+    //==================== AdminCore ====================
     Route::middleware('program.access:admin-core')
         ->prefix('admin-core')
         ->group(function () {
-            // Usuarios (gestión multi-programa)
-            Route::middleware('permission:admin.users.read,admin-core')
-                ->get('users', [AdminUserController::class, 'index']);
+            //Usuarios
+            Route::middleware('role:admin_admin_core,admin-core')
+                ->get('users', [UserController::class, 'index']);
 
-            Route::middleware('permission:admin.users.create,admin-core')
-                ->post('users', [AdminUserController::class, 'store']);
+            Route::middleware('role:admin_admin_core,admin-core')
+                ->post('users', [UserController::class, 'store']);
 
-            Route::middleware('permission:admin.users.read,admin-core')
-                ->get('users/{user}', [AdminUserController::class, 'show']);
+            Route::middleware('role:admin_admin_core,admin-core')
+                ->get('users/{user}', [UserController::class, 'show']);
 
-            Route::middleware('permission:admin.users.update,admin-core')
-                ->put('users/{user}', [AdminUserController::class, 'update']);
+            Route::middleware('role:admin_admin_core,admin-core')
+                ->put('users/{user}', [UserController::class, 'update']);
 
-            Route::middleware('permission:admin.users.delete,admin-core')
-                ->delete('users/{user}', [AdminUserController::class, 'destroy']);
+            Route::middleware('role:admin_admin_core,admin-core')
+                ->delete('users/{user}', [UserController::class, 'destroy']);
 
-            // Asignación de programas y roles a usuarios
-            Route::middleware('permission:admin.users.update,admin-core')
-                ->post('users/{user}/assign-program', [AdminUserController::class, 'assignProgram']);
+            Route::middleware('role:admin_admin_core,admin-core')
+                ->post('users/{user}/assign-program', [UserController::class, 'assignProgram']);
 
-            Route::middleware('permission:admin.users.update,admin-core')
-                ->delete('users/{user}/remove-program/{programId}', [AdminUserController::class, 'removeProgram']);
+            Route::middleware('role:admin_admin_core,admin-core')
+                ->delete('users/{user}/remove-program/{programId}', [UserController::class, 'removeProgram']);
 
-            // Grupos (roles globales)
-            Route::middleware('permission:admin.groups.read,admin-core')
+            //Grupos
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->apiResource('groups', GroupController::class)->except(['create', 'edit']);
 
-            Route::middleware('permission:admin.groups.update,admin-core')
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->post('groups/{group}/assign-users', [GroupController::class, 'assignUsers']);
 
-            Route::middleware('permission:admin.groups.update,admin-core')
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->delete('groups/{group}/remove-users', [GroupController::class, 'removeUsers']);
 
-            // Roles (por programa)
-            Route::middleware('permission:admin.roles.read,admin-core')
+            //Roles
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->get('roles', [RoleController::class, 'index']);
 
-            Route::middleware('permission:admin.roles.create,admin-core')
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->post('roles', [RoleController::class, 'store']);
 
-            Route::middleware('permission:admin.roles.read,admin-core')
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->get('roles/{role}', [RoleController::class, 'show']);
 
-            Route::middleware('permission:admin.roles.update,admin-core')
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->put('roles/{role}', [RoleController::class, 'update']);
 
-            Route::middleware('permission:admin.roles.delete,admin-core')
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->delete('roles/{role}', [RoleController::class, 'destroy']);
 
-            // Permisos (listado y asignación)
-            Route::middleware('permission:admin.permissions.read,admin-core')
-                ->get('permissions', [PermissionController::class, 'index']);
-
-            Route::middleware('permission:admin.permissions.assign,admin-core')
-                ->post('users/{user}/grant-permission', [AdminUserController::class, 'grantPermission']);
-
-            Route::middleware('permission:admin.permissions.assign,admin-core')
-                ->delete('users/{user}/revoke-permission', [AdminUserController::class, 'revokePermission']);
-                
-            Route::middleware('permission:admin.permissions.create,admin-core')
-                ->post('permissions', [PermissionController::class, 'store']);
-
-            Route::middleware('permission:admin.permissions.update,admin-core')
-                ->put('permissions/{permission}', [PermissionController::class, 'update']);
-
-            Route::middleware('permission:admin.permissions.delete,admin-core')
-                ->delete('permissions/{permission}', [PermissionController::class, 'destroy']);
-
-            // Programas de la suite
-            Route::middleware('permission:admin.programs.read,admin-core')
+            //Programas
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->get('programs', [ProgramController::class, 'index']);
 
-            Route::middleware('permission:admin.programs.create,admin-core')
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->post('programs', [ProgramController::class, 'store']);
 
-            Route::middleware('permission:admin.programs.read,admin-core')
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->get('programs/{program}', [ProgramController::class, 'show']);
 
-            Route::middleware('permission:admin.programs.update,admin-core')
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->put('programs/{program}', [ProgramController::class, 'update']);
 
-            Route::middleware('permission:admin.programs.delete,admin-core')
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->delete('programs/{program}', [ProgramController::class, 'destroy']);
 
-            // Cargos (positions)
-            Route::middleware('permission:admin.positions.read,admin-core')
+            //Cargos
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->get('positions', [PositionController::class, 'index']);
 
-            Route::middleware('permission:admin.positions.create,admin-core')
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->post('positions', [PositionController::class, 'store']);
 
-            Route::middleware('permission:admin.positions.read,admin-core')
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->get('positions/{position}', [PositionController::class, 'show']);
 
-            Route::middleware('permission:admin.positions.update,admin-core')
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->put('positions/{position}', [PositionController::class, 'update']);
 
-            Route::middleware('permission:admin.positions.delete,admin-core')
+            Route::middleware('role:admin_admin_core,admin-core')
                 ->delete('positions/{position}', [PositionController::class, 'destroy']);
         });
 
-    // ==================== DataCore ====================
+    //==================== DataCore ====================
     Route::middleware('program.access:data-core')
         ->prefix('data-core')
         ->group(function () {
-            Route::middleware('permission:users.read,data-core')
-                ->get('users', [UserController::class, 'index']);
 
-            Route::middleware('permission:users.create,data-core')
-                ->post('users', [UserController::class, 'store']);
+            // Todas las rutas de escritura requieren rol administrador
+            Route::middleware('role:admin_data_core,data-core')->group(function () {
+                // Gráficas
+                Route::apiResource('charts', ChartController::class);
+                Route::post('charts/validate-sql', [ChartExecutionController::class, 'validateSql']);
+                Route::post('charts/{chart}/validate-sql', [ChartExecutionController::class, 'validateSql']);
+                Route::post('charts/{chart}/execute', [ChartExecutionController::class, 'execute']);
 
-            Route::middleware('permission:users.read,data-core')
-                ->get('users/{user}', [UserController::class, 'show']);
+                // Tableros
+                Route::apiResource('dashboards', DashboardController::class);
+                Route::post('dashboards/{dashboard}/charts', [DashboardController::class, 'addChart']);
+                Route::delete('dashboards/{dashboard}/charts/{dashboardChart}', [DashboardController::class, 'removeChart']);
+                Route::put('dashboards/{dashboard}/charts/{dashboardChart}', [DashboardController::class, 'updateChartPosition']);
 
-            Route::middleware('permission:users.update,data-core')
-                ->put('users/{user}', [UserController::class, 'update']);
+                // Asignaciones de acceso (solo administradores)
+                Route::post('dashboards/{dashboard}/users/{user}', [DashboardAccessController::class, 'grantUser']);
+                Route::delete('dashboards/{dashboard}/users/{user}', [DashboardAccessController::class, 'revokeUser']);
+                Route::post('dashboards/{dashboard}/groups/{group}', [DashboardAccessController::class, 'grantGroup']);
+                Route::delete('dashboards/{dashboard}/groups/{group}', [DashboardAccessController::class, 'revokeGroup']);
+            });
 
-            Route::middleware('permission:users.delete,data-core')
-                ->delete('users/{user}', [UserController::class, 'destroy']);
+            // Catálogo de tipos de gráfico (público)
+            Route::get('chart-types', [ChartTypeController::class, 'index']);
 
-            Route::middleware('permission:users.update,data-core')
-                ->post('users/{user}/grant-permission', [UserController::class, 'grantPermission']);
-
-            Route::middleware('permission:users.update,data-core')
-                ->delete('users/{user}/revoke-permission', [UserController::class, 'revokePermission']);
+            Route::middleware('role:admin_data_core,data-core')->get('execution-logs', [ChartExecutionController::class, 'logs']);
         });
 });

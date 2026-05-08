@@ -4,6 +4,7 @@ import { catalogsApi } from "../services/catalogsApi";
 import { programs as programsSignal } from "../stores/programsStore";
 import { roles as rolesSignal } from "../stores/rolesStore";
 import { positions as positionsSignal } from "../stores/positionsStore";
+import { pushToast } from "../../../../tools/alerts";
 
 export interface AssignedProgram {
   program_id: number;
@@ -16,7 +17,6 @@ export function useUserForm(onSuccess: () => void) {
   const [loading, setLoading] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
 
-  //Estado del formulario
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,22 +27,21 @@ export function useUserForm(onSuccess: () => void) {
     [],
   );
 
-  //Cargar catálogos cuando se abre el modal
+  const loadCatalogs = async () => {
+    const [progRes, rolesRes, posRes] = await Promise.all([
+      catalogsApi.getPrograms(),
+      catalogsApi.getRoles(),
+      catalogsApi.getPositions(),
+    ]);
+    if (progRes.data) programsSignal.value = progRes.data;
+    if (rolesRes.data) rolesSignal.value = rolesRes.data;
+    if (posRes.data) positionsSignal.value = posRes.data;
+  };
+
   useEffect(() => {
-    if (open && programsSignal.value.length === 0) {
-      catalogsApi.getPrograms().then((res) => {
-        if (res.data) programsSignal.value = res.data;
-      });
-      catalogsApi.getRoles().then((res) => {
-        if (res.data) rolesSignal.value = res.data;
-      });
-      catalogsApi.getPositions().then((res) => {
-        if (res.data) positionsSignal.value = res.data;
-      });
-    }
+    if (open) loadCatalogs();
   }, [open]);
 
-  //Resetear o cargar datos al abrir/cerrar
   useEffect(() => {
     if (!open) {
       setName("");
@@ -96,18 +95,21 @@ export function useUserForm(onSuccess: () => void) {
     if (!name || !email) return;
 
     setLoading(true);
+
+    if (password && password !== passwordConfirmation) {
+      pushToast("Las contraseñas no coinciden", "warning");
+      setLoading(false);
+      return;
+    }
+
     const payload: any = {
       name,
       email,
       position_id: positionId ? parseInt(positionId) : null,
       status,
     };
+
     if (password) {
-      if (password !== passwordConfirmation) {
-        alert("Las contraseñas no coinciden");
-        setLoading(false);
-        return;
-      }
       payload.password = password;
       payload.password_confirmation = passwordConfirmation;
     }
@@ -115,7 +117,6 @@ export function useUserForm(onSuccess: () => void) {
     let res;
     if (editingUser) {
       res = await usersApi.updateUser(editingUser.id, payload);
-      //Sincronizar programas asignados (solo en edición)
       if (!res.error && assignedPrograms.length > 0) {
         for (const prog of assignedPrograms) {
           await usersApi.assignProgram(
@@ -127,16 +128,20 @@ export function useUserForm(onSuccess: () => void) {
         }
       }
     } else {
-      //En creación NO enviamos programas
       res = await usersApi.createUser(payload);
     }
 
     if (!res.error) {
       setOpen(false);
       onSuccess();
-    } else {
-      alert(res.error);
+      pushToast(
+        editingUser
+          ? "Usuario actualizado correctamente"
+          : "Usuario creado correctamente",
+        "success",
+      );
     }
+
     setLoading(false);
   };
 
@@ -149,30 +154,6 @@ export function useUserForm(onSuccess: () => void) {
     setEditingUser(user);
     setOpen(true);
   };
-
-  const loadCatalogs = async () => {
-    try {
-      const [progRes, rolesRes, posRes] = await Promise.all([
-        catalogsApi.getPrograms(),
-        catalogsApi.getRoles(),
-        catalogsApi.getPositions(),
-      ]);
-      if (progRes.data) programsSignal.value = progRes.data;
-      else console.error("Error programas:", progRes.error);
-      if (rolesRes.data) rolesSignal.value = rolesRes.data;
-      else console.error("Error roles:", rolesRes.error);
-      if (posRes.data) positionsSignal.value = posRes.data;
-      else console.error("Error cargos:", posRes.error);
-    } catch (err) {
-      console.error("Error cargando catálogos", err);
-    }
-  };
-
-  useEffect(() => {
-    if (open) {
-      loadCatalogs();
-    }
-  }, [open]);
 
   return {
     open,

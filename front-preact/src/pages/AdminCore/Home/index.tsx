@@ -4,8 +4,8 @@ import {
   Users,
   ShieldCheck,
   Settings,
-  Key,
   UserPlus,
+  Briefcase,
   ArrowRight,
 } from "lucide-preact";
 import NoticeComponent from "../Core/components/NoticeComponent";
@@ -14,21 +14,21 @@ import LoaderComponent from "../Core/components/LoaderComponent";
 import { useUsers } from "../Users/hooks";
 import { useRoles } from "../Roles/hooks";
 import { usePrograms } from "../Programs/hooks";
-import { usePermissions } from "../Permissions/hooks";
+import { usePositions } from "../Positions/hooks";
 import { useGroups } from "../Groups/hooks";
 
 export default function Home() {
   const { users, loading: usersLoading } = useUsers();
   const { roles, loading: rolesLoading } = useRoles();
   const { programs, loading: programsLoading } = usePrograms();
-  const { permissions, loading: permissionsLoading } = usePermissions();
+  const { positions, loading: positionsLoading } = usePositions();
   const { groups, loading: groupsLoading } = useGroups();
 
   const isLoading =
     usersLoading ||
     rolesLoading ||
     programsLoading ||
-    permissionsLoading ||
+    positionsLoading ||
     groupsLoading;
 
   useEffect(() => {
@@ -64,12 +64,12 @@ export default function Home() {
       badgeClass: "bg-purple-100 text-purple-700",
     },
     {
-      label: "Permisos definidos",
-      value: permissions.length.toString(),
-      valueTone: "text-amber-700",
-      badge: `${permissions.filter((p) => p.program_id === null).length} globales`,
-      badgeClass: "bg-amber-100 text-amber-700",
-      note: "asignables a roles",
+      label: "Cargos creados",
+      value: positions.filter((p) => p.name).length.toString(),
+      valueTone: "text-green-700",
+      badge: `${positions.filter((p) => p.name).length} cargos`,
+      badgeClass: "bg-green-100 text-green-700",
+      note: "del total registrados",
     },
     {
       label: "Grupos creados",
@@ -110,12 +110,13 @@ export default function Home() {
       bg: "bg-purple-50",
     },
     {
-      title: "Permisos",
-      description: "Gestiona los permisos del sistema (CRUD completo).",
-      icon: Key,
-      href: "/admin-core/permisos",
-      color: "text-amber-600",
-      bg: "bg-amber-50",
+      title: "Cargos",
+      description:
+        "Administra los cargos dentro de los programas, asigna permisos específicos a cada cargo.",
+      icon: Briefcase,
+      href: "/admin-core/cargos",
+      color: "text-green-600",
+      bg: "bg-green-50",
     },
     {
       title: "Grupos",
@@ -141,13 +142,6 @@ export default function Home() {
       title: "Roles huérfanos",
       description: `${roles.filter((r) => !r.is_global && !r.program_id).length} roles no están vinculados a ningún programa.`,
       link: "/admin-core/roles",
-    },
-    {
-      variant: "danger" as const,
-      icon: "⚠️",
-      title: "Permisos no usados",
-      description: `${permissions.filter((p) => !p.program_id).length} permisos globales no han sido asignados a ningún rol.`,
-      link: "/admin-core/permisos",
     },
     {
       variant: "warning" as const,

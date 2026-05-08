@@ -13,7 +13,7 @@ type Props = {
 
 export default function StatsComponent({ items }: Props) {
   return (
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
       {items.map((item) => (
         <div
           key={item.label}

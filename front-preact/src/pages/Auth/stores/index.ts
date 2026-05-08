@@ -10,7 +10,6 @@ export interface AuthUser {
   estado: "active" | "inactive" | "suspended";
   token: string;
   programs: MeResponse["programs"];
-  permissions: string[]; //permisos del programa activo
 }
 
 const STORAGE_KEY = "auth_session";
@@ -60,7 +59,6 @@ export function loginFromResponse(
     estado: meRes.status as AuthUser["estado"],
     token: loginRes.access_token,
     programs: meRes.programs,
-    permissions: program?.permissions ?? [],
   };
 
   authUser.value = user;
@@ -76,8 +74,4 @@ export function updateUser(partial: Partial<AuthUser>) {
   if (!authUser.value) return;
   authUser.value = { ...authUser.value, ...partial };
   saveToStorage(authUser.value);
-}
-
-export function hasPermission(permission: string): boolean {
-  return authUser.value?.permissions.includes(permission) ?? false;
 }

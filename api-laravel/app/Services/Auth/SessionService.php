@@ -2,7 +2,7 @@
 
 namespace App\Services\Auth;
 
-use App\Models\UserSession;
+use App\Models\Auth\UserSession;
 use Illuminate\Http\Request;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 

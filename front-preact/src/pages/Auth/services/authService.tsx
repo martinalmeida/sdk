@@ -33,7 +33,6 @@ export interface MeResponse {
     slug: string;
     role: string;
     is_active: boolean;
-    permissions: string[];
   }[];
 }
 

@@ -13,6 +13,7 @@ import {
 } from "../stores/positionsStore";
 import { usersApi } from "../services/usersApi";
 import { catalogsApi } from "../services/catalogsApi";
+import { pushToast } from "../../../../tools/alerts";
 
 export function useUsers() {
   const [loading, setLoading] = useState(true);
@@ -20,10 +21,9 @@ export function useUsers() {
   const loadUsers = async () => {
     usersLoading.value = true;
     usersError.value = null;
-    //Cargamos todos los usuarios (sin paginación)
     const res = await usersApi.getUsers({ per_page: 9999 });
     if (res.data) {
-      users.value = res.data.data; //asumiendo que la API devuelve { data: [...] }
+      users.value = res.data.data;
     } else {
       usersError.value = res.error || "Error al cargar usuarios";
     }
@@ -31,21 +31,18 @@ export function useUsers() {
   };
 
   const loadCatalogs = async () => {
-    //Programas
     programsLoading.value = true;
     const progRes = await catalogsApi.getPrograms();
     if (progRes.data) programs.value = progRes.data;
     else programsError.value = progRes.error;
     programsLoading.value = false;
 
-    //Roles
     rolesLoading.value = true;
     const rolesRes = await catalogsApi.getRoles();
     if (rolesRes.data) roles.value = rolesRes.data;
     else rolesError.value = rolesRes.error;
     rolesLoading.value = false;
 
-    //Posiciones
     positionsLoading.value = true;
     const posRes = await catalogsApi.getPositions();
     if (posRes.data) positions.value = posRes.data;
@@ -55,7 +52,10 @@ export function useUsers() {
 
   const deleteUser = async (userId: number) => {
     const res = await usersApi.deleteUser(userId);
-    if (!res.error) await loadUsers();
+    if (!res.error) {
+      await loadUsers();
+      pushToast("Usuario eliminado correctamente", "success");
+    }
     return res;
   };
 

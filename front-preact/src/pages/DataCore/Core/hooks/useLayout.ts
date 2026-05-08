@@ -165,7 +165,6 @@ export function useLayout() {
 
   async function singOut() {
     await handleLogout();
-    window.location.href = "/";
   }
 
   return {
